@@ -14,6 +14,14 @@
     justify-content: center;
     overflow: hidden;
   }
+  #plaats {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 2vw;
+    font-weight: 600;
+    color: #0fb6ff;
+    letter-spacing: 0.05em;
+    margin-top: 0.3em;
+  }
   #weer {
     display: flex;
     align-items: center;
@@ -32,9 +40,12 @@
 </style>
 </head>
 <body>
-  <div id="weer">
-    <span id="weer-icoon">--</span>
-    <span id="weer-temp">--°C</span>
+  <div id="wrapper" style="display:flex; flex-direction:column; align-items:center;">
+    <div id="weer">
+      <span id="weer-icoon">--</span>
+      <span id="weer-temp">--°C</span>
+    </div>
+    <div id="plaats">Zwolle</div>
   </div>
   <script>
     // Weer ophalen voor Zwolle via Open-Meteo (gratis, geen API-key nodig)
