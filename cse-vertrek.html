@@ -1,94 +1,40 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<title>CSE Vertrektijden</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: transparent;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    overflow: hidden;
-  }
-  #titel {
-    color: #0fb6ff;
-    font-size: 1.6vw;
-    font-weight: 700;
-    padding: 0.3em 0.6em 0.1em 0.6em;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 1.3vw;
-    color: #0fb6ff;
-  }
-  th {
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid #0fb6ff;
-    padding: 0.2em 0.6em;
-  }
-  td {
-    padding: 0.25em 0.6em;
-    border-bottom: 1px solid rgba(15,182,255,0.25);
-  }
-  .vertraagd {
-    color: #ff5050;
-    font-weight: 700;
-  }
-</style>
-</head>
-<body>
-  <div id="titel">Vertrek Zwolle</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Tijd</th>
-        <th>Bestemming</th>
-        <th>Spoor</th>
-      </tr>
-    </thead>
-    <tbody id="rijen">
-      <tr><td colspan="3">Laden...</td></tr>
-    </tbody>
-  </table>
+name: NS vertrektijden ophalen
 
-  <script>
-    const NS_KEY = '5d243e00744a4c4aaef8093e18dfe652';
-    const STATION = 'Zwolle';
-    const MAX = 6;
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
 
-    async function updateVertrek() {
-      try {
-        const url = `https://gateway.apiportal.ns.nl/reisinformatie-api/api/v2/departures?station=${encodeURIComponent(STATION)}&maxJourneys=${MAX}`;
-        const res = await fetch(url, {
-          headers: { 'Ocp-Apim-Subscription-Key': NS_KEY }
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        const rijen = document.getElementById('rijen');
-        rijen.innerHTML = '';
-        data.payload.forEach(v => {
-          const tijd = new Date(v.actualDateTime || v.plannedDateTime);
-          const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-          const vertraagd = v.actualDateTime && v.actualDateTime !== v.plannedDateTime;
-          const spoor = v.actualTrack || v.plannedTrack || '-';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="${vertraagd ? 'vertraagd' : ''}">${tijdStr}</td>
-            <td>${v.direction}</td>
-            <td>${spoor}</td>
-          `;
-          rijen.appendChild(tr);
-        });
-      } catch (e) {
-        document.getElementById('rijen').innerHTML = '<tr><td colspan="3">Kan vertrektijden niet ophalen</td></tr>';
-      }
-    }
-    updateVertrek();
-    setInterval(updateVertrek, 60 * 1000); // elke minuut verversen
-  </script>
-</body>
-</html>
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Repository ophalen
+        uses: actions/checkout@v4
+
+      - name: NS vertrektijden ophalen
+        env:
+          NS_API_KEY: ${{ secrets.NS_API_KEY }}
+        run: |
+          curl -s \
+            -H "Ocp-Apim-Subscription-Key: $NS_API_KEY" \
+            "https://gateway.apiportal.ns.nl/reisinformatie-api/api/v2/departures?station=Zwolle&maxJourneys=6" \
+            -o departures.json
+
+      - name: departures.json opslaan
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add departures.json
+
+          if git diff --cached --quiet; then
+            echo "Geen wijzigingen"
+          else
+            git commit -m "Update NS vertrektijden"
+            git push
+          fi
