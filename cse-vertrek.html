@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSE Vertrektijden Zwolle</title>
+
+<title>CSE OV Vertrektijden</title>
 
 <style>
   html, body {
@@ -12,7 +13,7 @@
     width: 100%;
     height: 100%;
     background: transparent;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: "Segoe UI", Arial, sans-serif;
     overflow: hidden;
   }
 
@@ -24,37 +25,55 @@
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    padding: 0.5vw;
   }
 
-  .titel {
+  .header {
     font-size: 1.8vw;
     font-weight: 700;
-    padding: 0.35em 0.6em 0.15em 0.6em;
+    padding: 0.2em 0.3em 0.4em 0.3em;
   }
 
-  .subtitel {
-    font-size: 0.9vw;
-    opacity: 0.7;
-    padding: 0 1.1em 0.5em 1.1em;
+  .columns {
+    display: flex;
+    width: 100%;
+    gap: 1.2vw;
+  }
+
+  .column {
+    width: 50%;
+  }
+
+  .section-title {
+    font-size: 1.35vw;
+    font-weight: 700;
+    padding: 0.35em 0.5em;
+    border-bottom: 2px solid #0fb6ff;
+  }
+
+  .section-info {
+    font-size: 0.75vw;
+    opacity: 0.65;
+    padding: 0.25em 0.7em 0.45em 0.7em;
   }
 
   table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    font-size: 1.25vw;
+    font-size: 1.05vw;
   }
 
   th {
     text-align: left;
     font-weight: 600;
-    border-bottom: 2px solid #0fb6ff;
-    padding: 0.25em 0.6em;
+    padding: 0.25em 0.5em;
+    border-bottom: 1px solid rgba(15, 182, 255, 0.5);
   }
 
   td {
-    padding: 0.28em 0.6em;
-    border-bottom: 1px solid rgba(15, 182, 255, 0.25);
+    padding: 0.28em 0.5em;
+    border-bottom: 1px solid rgba(15, 182, 255, 0.2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -62,12 +81,12 @@
 
   th:nth-child(1),
   td:nth-child(1) {
-    width: 18%;
+    width: 22%;
   }
 
   th:nth-child(2),
   td:nth-child(2) {
-    width: 57%;
+    width: 53%;
   }
 
   th:nth-child(3),
@@ -84,276 +103,549 @@
     font-weight: 700;
   }
 
-  .op-tijd {
-    color: #0fb6ff;
-  }
-
   .geannuleerd {
     color: #ff5050;
     font-weight: 700;
     text-decoration: line-through;
   }
 
-  .laden,
-  .fout {
+  .buslijn {
+    font-weight: 700;
+  }
+
+  .laden {
+    opacity: 0.7;
     padding: 0.8em;
-    font-size: 1.2vw;
   }
 
   .fout {
     color: #ff5050;
+    padding: 0.8em;
+  }
+
+  .footer {
+    font-size: 0.65vw;
+    opacity: 0.5;
+    padding: 0.6em;
+    text-align: right;
   }
 </style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-  <div class="titel">🚆 Vertrek Zwolle</div>
-
-  <div class="subtitel" id="status">
-    Vertrektijden worden geladen...
+  <div class="header">
+    🚆🚌 OV bij CSE
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Tijd</th>
-        <th>Bestemming</th>
-        <th>Spoor</th>
-      </tr>
-    </thead>
+  <div class="columns">
 
-    <tbody id="rijen">
-      <tr>
-        <td colspan="3" class="laden">Laden...</td>
-      </tr>
-    </tbody>
-  </table>
+    <!-- TREINEN -->
+
+    <div class="column">
+
+      <div class="section-title">
+        🚆 Treinen — Zwolle
+      </div>
+
+      <div class="section-info" id="treinStatus">
+        Laden...
+      </div>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Tijd</th>
+            <th>Bestemming</th>
+            <th>Spoor</th>
+          </tr>
+        </thead>
+
+        <tbody id="treinen">
+
+          <tr>
+            <td colspan="3" class="laden">
+              Treinen laden...
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- BUSSEN -->
+
+    <div class="column">
+
+      <div class="section-title">
+        🚌 Bussen — Stadion
+      </div>
+
+      <div class="section-info" id="busStatus">
+        Laden...
+      </div>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Tijd</th>
+            <th>Lijn</th>
+            <th>Richting</th>
+          </tr>
+        </thead>
+
+        <tbody id="bussen">
+
+          <tr>
+            <td colspan="3" class="laden">
+              Bussen laden...
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <div class="footer" id="updateStatus">
+    CSE OV
+  </div>
 
 </div>
 
+
 <script>
 
+/* =====================================================
+   INSTELLINGEN
+   ===================================================== */
+
 const MAX_TREINEN = 6;
+const MAX_BUSSEN = 6;
 
-async function updateVertrek() {
 
-  const rijen = document.getElementById('rijen');
-  const status = document.getElementById('status');
+/* =====================================================
+   TREINEN
+   ===================================================== */
+
+async function laadTreinen() {
+
+  const container =
+    document.getElementById("treinen");
+
+  const status =
+    document.getElementById("treinStatus");
 
   try {
 
-    /*
-      De GitHub Action haalt de NS-data op.
-      Deze pagina leest alleen departures.json.
-    */
-
     const response = await fetch(
-      'departures.json?t=' + Date.now(),
+      "departures.json?t=" + Date.now(),
       {
-        cache: 'no-store'
+        cache: "no-store"
       }
     );
 
     if (!response.ok) {
       throw new Error(
-        'departures.json kon niet worden geladen (' +
-        response.status +
-        ')'
+        "departures.json: " +
+        response.status
       );
     }
 
-    const data = await response.json();
-
-    /*
-      De NS-data staat in:
-      payload.departures
-    */
+    const data =
+      await response.json();
 
     if (
       !data.payload ||
-      !Array.isArray(data.payload.departures)
+      !Array.isArray(
+        data.payload.departures
+      )
     ) {
-      throw new Error('Ongeldige NS-data');
+      throw new Error(
+        "Ongeldige NS-data"
+      );
     }
 
-    const vertrekken = data.payload.departures;
+    let vertrekken =
+      data.payload.departures;
 
-    /*
-      Sorteer op geplande vertrektijd.
-    */
+
+    /* Sorteer op geplande tijd */
 
     vertrekken.sort(function(a, b) {
 
-      return new Date(a.plannedDateTime) -
-             new Date(b.plannedDateTime);
+      return new Date(
+        a.plannedDateTime
+      ) -
+      new Date(
+        b.plannedDateTime
+      );
 
     });
 
-    /*
-      Alleen de eerstvolgende treinen tonen.
-      Geannuleerde treinen mogen wel zichtbaar blijven.
-    */
 
-    const geselecteerd = vertrekken
-      .slice(0, MAX_TREINEN);
+    /* Alleen eerste 6 */
 
-    rijen.innerHTML = '';
-
-    if (geselecteerd.length === 0) {
-
-      rijen.innerHTML =
-        '<tr><td colspan="3">Geen vertrektijden beschikbaar</td></tr>';
-
-      return;
-    }
-
-    geselecteerd.forEach(function(trein) {
-
-      const gepland = new Date(trein.plannedDateTime);
-
-      const actueel = trein.actualDateTime
-        ? new Date(trein.actualDateTime)
-        : gepland;
-
-      const tijd = actueel.toLocaleTimeString(
-        'nl-NL',
-        {
-          hour: '2-digit',
-          minute: '2-digit'
-        }
+    vertrekken =
+      vertrekken.slice(
+        0,
+        MAX_TREINEN
       );
+
+
+    container.innerHTML = "";
+
+
+    vertrekken.forEach(function(trein) {
+
+      const gepland =
+        new Date(
+          trein.plannedDateTime
+        );
+
+      const actueel =
+        trein.actualDateTime
+          ? new Date(
+              trein.actualDateTime
+            )
+          : gepland;
+
+
+      const tijd =
+        actueel.toLocaleTimeString(
+          "nl-NL",
+          {
+            hour: "2-digit",
+            minute: "2-digit"
+          }
+        );
+
 
       const vertraging =
         Math.round(
-          (actueel - gepland) / 60000
+          (
+            actueel - gepland
+          ) / 60000
         );
 
-      const vertraagd =
-        vertraging > 0;
-
-      const geannuleerd =
-        trein.cancelled === true;
 
       const spoor =
         trein.actualTrack ||
         trein.plannedTrack ||
-        '-';
+        "-";
 
-      const bestemming =
+
+      let tijdClass =
+        "tijd";
+
+
+      if (
+        vertraging > 0
+      ) {
+        tijdClass +=
+          " vertraagd";
+      }
+
+
+      if (
+        trein.cancelled
+      ) {
+        tijdClass +=
+          " geannuleerd";
+      }
+
+
+      let bestemming =
         trein.direction ||
-        '-';
+        "-";
+
+
+      if (
+        trein.cancelled
+      ) {
+        bestemming +=
+          " (GEANNULEERD)";
+      }
+
 
       const tr =
-        document.createElement('tr');
+        document.createElement(
+          "tr"
+        );
 
-      /*
-        Tijd
-      */
-
-      let tijdKlasse = 'tijd';
-
-      if (vertraagd) {
-        tijdKlasse += ' vertraagd';
-      }
-
-      if (geannuleerd) {
-        tijdKlasse += ' geannuleerd';
-      }
-
-      /*
-        Bestemming
-      */
-
-      let bestemmingTekst =
-        bestemming;
-
-      if (geannuleerd) {
-        bestemmingTekst += ' (GEANNULEERD)';
-      }
-
-      /*
-        HTML maken
-      */
 
       tr.innerHTML = `
-        <td class="${tijdKlasse}">
+
+        <td class="${tijdClass}">
           ${tijd}
         </td>
 
         <td>
-          ${bestemmingTekst}
+          ${bestemming}
         </td>
 
         <td>
           ${spoor}
         </td>
+
       `;
 
-      rijen.appendChild(tr);
+
+      container.appendChild(tr);
 
     });
 
-    /*
-      Status onder de titel
-    */
-
-    const nu = new Date();
-
-    const updateTijd =
-      nu.toLocaleTimeString(
-        'nl-NL',
-        {
-          hour: '2-digit',
-          minute: '2-digit'
-        }
-      );
 
     status.textContent =
-      'Station Zwolle • bijgewerkt om ' +
-      updateTijd;
+      "Actuele NS-vertrektijden";
+
 
   }
 
   catch (error) {
 
     console.error(
-      'Fout bij ophalen vertrektijden:',
+      "Trein fout:",
       error
     );
 
-    rijen.innerHTML = `
+
+    container.innerHTML = `
+
       <tr>
-        <td colspan="3" class="fout">
-          Kan vertrektijden niet ophalen
+        <td colspan="3"
+            class="fout">
+          Treintijden niet beschikbaar
         </td>
       </tr>
+
     `;
 
+
     status.textContent =
-      'Kan NS-gegevens momenteel niet laden';
+      "NS tijdelijk niet beschikbaar";
 
   }
 
 }
 
 
+/* =====================================================
+   BUSSEN
+   ===================================================== */
+
+async function laadBussen() {
+
+  const container =
+    document.getElementById("bussen");
+
+  const status =
+    document.getElementById("busStatus");
+
+
+  try {
+
+    const response = await fetch(
+      "buses.json?t=" + Date.now(),
+      {
+        cache: "no-store"
+      }
+    );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "buses.json: " +
+        response.status
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !data.departures ||
+      !Array.isArray(
+        data.departures
+      )
+    ) {
+
+      throw new Error(
+        "Ongeldige busdata"
+      );
+
+    }
+
+
+    /*
+      De huidige buses.json bevat
+      de geplande dienstregeling.
+    */
+
+    let vertrekken =
+      data.departures;
+
+
+    /*
+      Sorteer op vertrektijd.
+    */
+
+    vertrekken.sort(function(a, b) {
+
+      return (
+        a.departure_time || ""
+      ).localeCompare(
+        b.departure_time || ""
+      );
+
+    });
+
+
+    /*
+      We tonen maximaal 6.
+    */
+
+    vertrekken =
+      vertrekken.slice(
+        0,
+        MAX_BUSSEN
+      );
+
+
+    container.innerHTML = "";
+
+
+    vertrekken.forEach(
+      function(bus) {
+
+        const tijd =
+          bus.departure_time ||
+          "--:--";
+
+
+        const tr =
+          document.createElement(
+            "tr"
+          );
+
+
+        tr.innerHTML = `
+
+          <td class="tijd">
+            ${tijd.substring(0, 5)}
+          </td>
+
+          <td class="buslijn">
+            Bus
+          </td>
+
+          <td>
+            Stadion
+          </td>
+
+        `;
+
+
+        container.appendChild(tr);
+
+      }
+    );
+
+
+    status.textContent =
+      "Geplande dienstregeling";
+
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Bus fout:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <tr>
+        <td colspan="3"
+            class="fout">
+          Bustijden niet beschikbaar
+        </td>
+      </tr>
+
+    `;
+
+
+    status.textContent =
+      "Busgegevens tijdelijk niet beschikbaar";
+
+  }
+
+}
+
+
+/* =====================================================
+   ALLES LADEN
+   ===================================================== */
+
+async function updateAlles() {
+
+  await laadTreinen();
+
+  await laadBussen();
+
+
+  const nu =
+    new Date();
+
+
+  const tijd =
+    nu.toLocaleTimeString(
+      "nl-NL",
+      {
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    );
+
+
+  document.getElementById(
+    "updateStatus"
+  ).textContent =
+    "CSE OV • bijgewerkt " +
+    tijd;
+
+}
+
+
+/* Eerste keer */
+
+updateAlles();
+
+
 /*
-  Eerste keer direct laden
-*/
-
-updateVertrek();
-
-
-/*
-  Iedere minuut controleren of er
-  nieuwe gegevens beschikbaar zijn.
+  Iedere minuut opnieuw controleren.
 */
 
 setInterval(
-  updateVertrek,
+  updateAlles,
   60 * 1000
 );
 
