@@ -85,7 +85,7 @@ async function updateVertrek() {
 
     rijen.innerHTML = '';
 
-    data.payload.forEach(v => {
+    data.payload.departures.forEach(v => {
 
       const tijd = new Date(
         v.actualDateTime || v.plannedDateTime
