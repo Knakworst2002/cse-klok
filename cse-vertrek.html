@@ -1,40 +1,146 @@
-name: NS vertrektijden ophalen
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>CSE Vertrektijden</title>
 
-on:
-  schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: transparent;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+  }
 
-jobs:
-  update:
-    runs-on: ubuntu-latest
+  #titel {
+    color: #0fb6ff;
+    font-size: 1.6vw;
+    font-weight: 700;
+    padding: 0.3em 0.6em 0.1em 0.6em;
+  }
 
-    permissions:
-      contents: write
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.3vw;
+    color: #0fb6ff;
+  }
 
-    steps:
-      - name: Repository ophalen
-        uses: actions/checkout@v4
+  th {
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #0fb6ff;
+    padding: 0.2em 0.6em;
+  }
 
-      - name: NS vertrektijden ophalen
-        env:
-          NS_API_KEY: ${{ secrets.NS_API_KEY }}
-        run: |
-          curl -s \
-            -H "Ocp-Apim-Subscription-Key: $NS_API_KEY" \
-            "https://gateway.apiportal.ns.nl/reisinformatie-api/api/v2/departures?station=Zwolle&maxJourneys=6" \
-            -o departures.json
+  td {
+    padding: 0.25em 0.6em;
+    border-bottom: 1px solid rgba(15,182,255,0.25);
+  }
 
-      - name: departures.json opslaan
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  .vertraagd {
+    color: #ff5050;
+    font-weight: 700;
+  }
+</style>
+</head>
 
-          git add departures.json
+<body>
 
-          if git diff --cached --quiet; then
-            echo "Geen wijzigingen"
-          else
-            git commit -m "Update NS vertrektijden"
-            git push
-          fi
+<div id="titel">Vertrek Zwolle</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tijd</th>
+      <th>Bestemming</th>
+      <th>Spoor</th>
+    </tr>
+  </thead>
+
+  <tbody id="rijen">
+    <tr>
+      <td colspan="3">Laden...</td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+
+async function updateVertrek() {
+
+  try {
+
+    const res = await fetch('departures.json?t=' + Date.now());
+
+    if (!res.ok) {
+      throw new Error('departures.json niet gevonden');
+    }
+
+    const data = await res.json();
+
+    const rijen = document.getElementById('rijen');
+
+    rijen.innerHTML = '';
+
+    data.payload.forEach(v => {
+
+      const tijd = new Date(
+        v.actualDateTime || v.plannedDateTime
+      );
+
+      const tijdStr = tijd.toLocaleTimeString('nl-NL', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const vertraagd =
+        v.actualDateTime &&
+        v.actualDateTime !== v.plannedDateTime;
+
+      const spoor =
+        v.actualTrack ||
+        v.plannedTrack ||
+        '-';
+
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td class="${vertraagd ? 'vertraagd' : ''}">
+          ${tijdStr}
+        </td>
+
+        <td>
+          ${v.direction || '-'}
+        </td>
+
+        <td>
+          ${spoor}
+        </td>
+      `;
+
+      rijen.appendChild(tr);
+
+    });
+
+  } catch (e) {
+
+    console.error(e);
+
+    document.getElementById('rijen').innerHTML =
+      '<tr><td colspan="3">Kan vertrektijden niet ophalen</td></tr>';
+
+  }
+
+}
+
+updateVertrek();
+
+setInterval(updateVertrek, 60 * 1000);
+
+</script>
+
+</body>
+</html>
