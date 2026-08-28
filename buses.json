@@ -1,1 +1,706 @@
-
+{
+  "stop_id": "3190869",
+  "stop_name": "Zwolle, Stadion",
+  "departures": [
+    {
+      "trip_id": "374456759",
+      "departure_time": "06:33:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374461995",
+      "departure_time": "06:33:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378014246",
+      "departure_time": "06:33:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378019508",
+      "departure_time": "06:33:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378024770",
+      "departure_time": "06:33:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378030007",
+      "departure_time": "06:33:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037370",
+      "departure_time": "06:33:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374456760",
+      "departure_time": "07:03:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374461996",
+      "departure_time": "07:03:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378014247",
+      "departure_time": "07:03:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378019509",
+      "departure_time": "07:03:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378024771",
+      "departure_time": "07:03:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378030008",
+      "departure_time": "07:03:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037372",
+      "departure_time": "07:03:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374454330",
+      "departure_time": "07:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "374459566",
+      "departure_time": "07:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378011817",
+      "departure_time": "07:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378017079",
+      "departure_time": "07:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378022341",
+      "departure_time": "07:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378027578",
+      "departure_time": "07:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378034408",
+      "departure_time": "07:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "374456761",
+      "departure_time": "07:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374461997",
+      "departure_time": "07:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378014248",
+      "departure_time": "07:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378019510",
+      "departure_time": "07:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378024772",
+      "departure_time": "07:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378030009",
+      "departure_time": "07:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037374",
+      "departure_time": "07:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374458851",
+      "departure_time": "07:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "374464087",
+      "departure_time": "07:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378016349",
+      "departure_time": "07:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378021611",
+      "departure_time": "07:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378026849",
+      "departure_time": "07:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378032086",
+      "departure_time": "07:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378035350",
+      "departure_time": "07:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "374456762",
+      "departure_time": "07:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374461998",
+      "departure_time": "07:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378014249",
+      "departure_time": "07:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378019511",
+      "departure_time": "07:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378024773",
+      "departure_time": "07:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378030010",
+      "departure_time": "07:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037376",
+      "departure_time": "07:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374458865",
+      "departure_time": "08:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle"
+    },
+    {
+      "trip_id": "374464101",
+      "departure_time": "08:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle"
+    },
+    {
+      "trip_id": "378016363",
+      "departure_time": "08:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378021625",
+      "departure_time": "08:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378026863",
+      "departure_time": "08:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378032100",
+      "departure_time": "08:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378035376",
+      "departure_time": "08:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "374456763",
+      "departure_time": "08:04:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374461999",
+      "departure_time": "08:04:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378014250",
+      "departure_time": "08:04:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378019512",
+      "departure_time": "08:04:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378024774",
+      "departure_time": "08:04:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378030011",
+      "departure_time": "08:04:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037378",
+      "departure_time": "08:04:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374454332",
+      "departure_time": "08:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "374459568",
+      "departure_time": "08:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378011819",
+      "departure_time": "08:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378017081",
+      "departure_time": "08:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378022343",
+      "departure_time": "08:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378027580",
+      "departure_time": "08:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "378034410",
+      "departure_time": "08:05:06",
+      "line": "41",
+      "route": "Zwartsluis - Zwolle",
+      "destination": "Zwartsluis"
+    },
+    {
+      "trip_id": "374456764",
+      "departure_time": "08:27:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374462000",
+      "departure_time": "08:27:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378014251",
+      "departure_time": "08:27:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378019513",
+      "departure_time": "08:27:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378024775",
+      "departure_time": "08:27:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378030012",
+      "departure_time": "08:27:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037380",
+      "departure_time": "08:27:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374452712",
+      "departure_time": "08:32:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Berkum"
+    },
+    {
+      "trip_id": "378010199",
+      "departure_time": "08:32:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Berkum"
+    },
+    {
+      "trip_id": "378041382",
+      "departure_time": "08:32:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Berkum"
+    },
+    {
+      "trip_id": "374459248",
+      "departure_time": "08:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374464484",
+      "departure_time": "08:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378016746",
+      "departure_time": "08:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378022008",
+      "departure_time": "08:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378027246",
+      "departure_time": "08:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378032483",
+      "departure_time": "08:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037382",
+      "departure_time": "08:34:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374455114",
+      "departure_time": "08:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "374460350",
+      "departure_time": "08:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378012601",
+      "departure_time": "08:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378017863",
+      "departure_time": "08:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378023125",
+      "departure_time": "08:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378028362",
+      "departure_time": "08:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378035352",
+      "departure_time": "08:36:27",
+      "line": "166",
+      "route": "Raalte - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "374456765",
+      "departure_time": "08:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374462001",
+      "departure_time": "08:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378014252",
+      "departure_time": "08:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378019514",
+      "departure_time": "08:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378024776",
+      "departure_time": "08:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378030013",
+      "departure_time": "08:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "378037384",
+      "departure_time": "08:57:00",
+      "line": "3",
+      "route": "Hessenpoort - Station",
+      "destination": "Hessenpoort"
+    },
+    {
+      "trip_id": "374455126",
+      "departure_time": "09:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle"
+    },
+    {
+      "trip_id": "374460362",
+      "departure_time": "09:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle"
+    },
+    {
+      "trip_id": "378012613",
+      "departure_time": "09:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378017875",
+      "departure_time": "09:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378023137",
+      "departure_time": "09:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    },
+    {
+      "trip_id": "378028374",
+      "departure_time": "09:01:27",
+      "line": "167",
+      "route": "Lemelerveld - Zwolle Hessenpoort",
+      "destination": "Zwolle Hessenpoort"
+    }
+  ]
+}
