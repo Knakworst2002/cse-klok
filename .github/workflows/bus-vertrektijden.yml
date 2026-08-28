@@ -2,8 +2,6 @@ name: Bus vertrektijden ophalen
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/5 * * * *"
 
 jobs:
   update:
@@ -24,118 +22,113 @@ jobs:
 
       - name: GTFS downloaden
         run: |
-          curl -L \
-            "https://gtfs.ovapi.nl/nl/gtfs-nl.zip" \
-            -o gtfs.zip
+          curl -L "https://gtfs.ovapi.nl/nl/gtfs-nl.zip" -o gtfs.zip
 
-      - name: Halte Zwolle Stadion zoeken
+      - name: Busgegevens maken
         run: |
           python - <<'PY'
           import zipfile
           import csv
-
-          with zipfile.ZipFile("gtfs.zip") as z:
-              with z.open("stops.txt") as f:
-                  rows = csv.DictReader(
-                      (line.decode("utf-8-sig") for line in f)
-                  )
-
-                  gevonden = []
-
-                  for row in rows:
-                      naam = row.get("stop_name", "").lower()
-
-                      if (
-                          "stadion" in naam
-                          and "zwolle" in naam
-                      ):
-                          gevonden.append(row)
-
-                  print("Gevonden haltes:")
-
-                  for row in gevonden:
-                      print(
-                          row.get("stop_id"),
-                          row.get("stop_name")
-                      )
-
-                  if not gevonden:
-                      raise SystemExit(
-                          "Halte Zwolle, Stadion niet gevonden"
-                      )
-
-                  with open("stadion_stop.txt", "w") as out:
-                      out.write(
-                          gevonden[0].get("stop_id", "")
-                      )
-          PY
-
-      - name: Stop-ID tonen
-        run: |
-          echo "Stop-ID:"
-          cat stadion_stop.txt
-
-      - name: Busdata voorbereiden
-        run: |
-          python - <<'PY'
           import json
-          import zipfile
-          import csv
-          from datetime import datetime, timezone
 
-          stop_id = open("stadion_stop.txt").read().strip()
+          z = zipfile.ZipFile("gtfs.zip")
 
-          print("Gekozen stop:", stop_id)
+          # Halte zoeken
+          stop_id = None
+          stop_name = None
+
+          with z.open("stops.txt") as f:
+              rows = csv.DictReader(
+                  line.decode("utf-8-sig")
+                  for line in f
+              )
+
+              for row in rows:
+                  naam = row.get("stop_name", "").lower()
+
+                  if "stadion" in naam and "zwolle" in naam:
+                      stop_id = row["stop_id"]
+                      stop_name = row["stop_name"]
+                      break
+
+          if not stop_id:
+              raise Exception("Zwolle, Stadion niet gevonden")
+
+          print("HALTE:", stop_id, stop_name)
+
+          # Routes
+          routes = {}
+
+          with z.open("routes.txt") as f:
+              rows = csv.DictReader(
+                  line.decode("utf-8-sig")
+                  for line in f
+              )
+
+              for row in rows:
+                  routes[row["route_id"]] = {
+                      "line": row.get("route_short_name", ""),
+                      "route": row.get("route_long_name", "")
+                  }
+
+          print("ROUTES:", len(routes))
+
+          # Trips
+          trips = {}
+
+          with z.open("trips.txt") as f:
+              rows = csv.DictReader(
+                  line.decode("utf-8-sig")
+                  for line in f
+              )
+
+              for row in rows:
+                  trips[row["trip_id"]] = {
+                      "route_id": row.get("route_id", ""),
+                      "destination": row.get("trip_headsign", "")
+                  }
+
+          print("TRIPS:", len(trips))
+
+          # Vertrektijden
+          departures = []
+
+          with z.open("stop_times.txt") as f:
+              rows = csv.DictReader(
+                  line.decode("utf-8-sig")
+                  for line in f
+              )
+
+              for row in rows:
+
+                  if row.get("stop_id") != stop_id:
+                      continue
+
+                  trip_id = row.get("trip_id", "")
+                  trip = trips.get(trip_id, {})
+
+                  route_id = trip.get("route_id", "")
+                  route = routes.get(route_id, {})
+
+                  departures.append({
+                      "trip_id": trip_id,
+                      "departure_time": row.get("departure_time", ""),
+                      "line": route.get("line", ""),
+                      "route": route.get("route", ""),
+                      "destination": trip.get("destination", "")
+                  })
+
+          departures.sort(
+              key=lambda x: x["departure_time"]
+          )
 
           data = {
               "stop_id": stop_id,
-              "stop_name": "Zwolle, Stadion",
-              "departures": [],
-              "updated": datetime.now(
-                  timezone.utc
-              ).isoformat()
+              "stop_name": stop_name,
+              "departures": departures[:100]
           }
 
-          with zipfile.ZipFile("gtfs.zip") as z:
-
-              # Alleen dienstregeling-data lezen.
-              # Realtime-data voegen we in een volgende stap toe.
-              with z.open("stop_times.txt") as f:
-
-                  rows = csv.DictReader(
-                      (line.decode("utf-8-sig") for line in f)
-                  )
-
-                  aantal = 0
-
-                  for row in rows:
-
-                      if row.get("stop_id") != stop_id:
-                          continue
-
-                      data["departures"].append({
-                          "trip_id": row.get("trip_id"),
-                          "arrival_time": row.get(
-                              "arrival_time"
-                          ),
-                          "departure_time": row.get(
-                              "departure_time"
-                          ),
-                          "stop_sequence": row.get(
-                              "stop_sequence"
-                          )
-                      })
-
-                      aantal += 1
-
-                      if aantal >= 100:
-                          break
-
-          with open(
-              "buses.json",
-              "w",
-              encoding="utf-8"
-          ) as f:
+          with open("buses.json", "w", encoding="utf-8") as f:
               json.dump(
                   data,
                   f,
@@ -143,10 +136,17 @@ jobs:
                   indent=2
               )
 
-          print(
-              "Aantal gevonden busritten:",
-              len(data["departures"])
-          )
+          print("BUSRITTEN:", len(departures))
+
+          for bus in departures[:10]:
+              print(
+                  bus["departure_time"],
+                  "| lijn:",
+                  bus["line"],
+                  "| bestemming:",
+                  bus["destination"]
+              )
+
           PY
 
       - name: buses.json opslaan
@@ -156,9 +156,6 @@ jobs:
 
           git add buses.json
 
-          if git diff --cached --quiet; then
-            echo "Geen wijzigingen"
-          else
-            git commit -m "Update bus vertrektijden"
-            git push
-          fi
+          git commit -m "Update bus vertrektijden" || echo "Geen wijzigingen"
+
+          git push
