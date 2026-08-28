@@ -67,22 +67,17 @@
   </div>
 
   <script>
-    const NS_KEY = '5d243e00744a4c4aaef8093e18dfe652';
-    const STATION = 'Zwolle';
     const MAX = 6;
 
-    // --- NS treinen ---
+    // --- NS treinen (uit departures.json, zelfde repo) ---
     async function updateTrein() {
       try {
-        const url = `https://gateway.apiportal.ns.nl/reisinformatie-api/api/v2/departures?station=${encodeURIComponent(STATION)}&maxJourneys=${MAX}`;
-        const res = await fetch(url, {
-          headers: { 'Ocp-Apim-Subscription-Key': NS_KEY }
-        });
+        const res = await fetch('./departures.json', { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         const rijen = document.getElementById('rijen-trein');
         rijen.innerHTML = '';
-        data.payload.forEach(v => {
+        data.payload.departures.slice(0, MAX).forEach(v => {
           const tijd = new Date(v.actualDateTime || v.plannedDateTime);
           const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
           const vertraagd = v.actualDateTime && v.actualDateTime !== v.plannedDateTime;
@@ -105,7 +100,19 @@
       const nu = new Date();
       const nuStr = nu.toTimeString().slice(0, 8); // HH:MM:SS
       const komend = departures.filter(d => d.departure_time >= nuStr);
-      return (komend.length ? komend : departures).slice(0, aantal);
+      const bron = komend.length ? komend : departures;
+
+      // Dedupliceren: zelfde tijd+lijn+bestemming (verschillende trip_id's) telt als 1 vertrek
+      const gezien = new Set();
+      const uniek = [];
+      for (const d of bron) {
+        const sleutel = d.departure_time + '|' + d.line + '|' + d.destination;
+        if (!gezien.has(sleutel)) {
+          gezien.add(sleutel);
+          uniek.push(d);
+        }
+      }
+      return uniek.slice(0, aantal);
     }
 
     async function updateBus() {
