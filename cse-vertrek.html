@@ -72,7 +72,7 @@
     // --- NS treinen (uit departures.json, zelfde repo) ---
     async function updateTrein() {
       try {
-        const res = await fetch('./departures.json', { cache: 'no-store' });
+        const res = await fetch('./departures.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         const rijen = document.getElementById('rijen-trein');
@@ -117,7 +117,7 @@
 
     async function updateBus() {
       try {
-        const res = await fetch('./buses.json', { cache: 'no-store' });
+        const res = await fetch('./buses.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         const rijen = document.getElementById('rijen-bus');
