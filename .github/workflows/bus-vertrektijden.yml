@@ -2,6 +2,8 @@ name: Bus vertrektijden ophalen
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
 
 jobs:
   update:
