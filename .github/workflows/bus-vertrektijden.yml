@@ -127,7 +127,7 @@ jobs:
           data = {
               "stop_id": stop_id,
               "stop_name": stop_name,
-              ""departures": departures
+              "departures": departures
           }
 
           with open("buses.json", "w", encoding="utf-8") as f:
