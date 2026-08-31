@@ -20,19 +20,19 @@
     flex-direction: column;
     overflow: hidden;
   }
+  #datum-boven {
+    color: #0fb6ff;
+    font-size: 2.2vh;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.3vh;
+  }
   #titel {
     color: #0fb6ff;
     font-size: 4.2vh;
     font-weight: 800;
     letter-spacing: 0.02em;
-  }
-  #datum {
-    color: #000000;
-    font-size: 2.2vh;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin-top: 1vh;
   }
   table {
     margin-top: 1vh;
@@ -56,12 +56,12 @@
 </head>
 <body>
   <div id="wrapper">
+    <div id="datum-boven">--</div>
     <div id="titel">--</div>
     <table id="tabel">
       <thead><tr><th>Klas</th><th>Collega</th><th>Lokaal</th></tr></thead>
       <tbody id="rijen"></tbody>
     </table>
-    <div id="datum">--</div>
   </div>
 
   <script>
@@ -89,23 +89,32 @@
       return `${jaar}-${maand}-${dag}`;
     }
 
-    function updateDatum() {
-      const params = new URLSearchParams(window.location.search);
-      const override = params.get('datum');
-      const nu = override ? new Date(override + 'T00:00:00') : new Date();
+    function veiligWeergaveDatum(datumObj) {
+      // Bouwt een UTC-middag-Date uit de lokale jaar/maand/dag-waarden,
+      // zodat formatteren nooit naar de verkeerde dag verschuift.
+      return new Date(Date.UTC(
+        datumObj.getFullYear(),
+        datumObj.getMonth(),
+        datumObj.getDate(),
+        12
+      ));
+    }
+
+    function updateDatumBoven(datumObj) {
+      const veilig = veiligWeergaveDatum(datumObj);
       const datumStr = new Intl.DateTimeFormat('nl-NL', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
-        timeZone: override ? 'UTC' : 'Europe/Amsterdam'
-      }).format(nu);
-      document.getElementById('datum').textContent = 'Vandaag: ' + datumStr;
+        timeZone: 'UTC'
+      }).format(veilig);
+      document.getElementById('datum-boven').textContent = 'Morgen, ' + datumStr + ', hebben corvee:';
     }
 
     async function updateCorvee() {
       try {
-        updateDatum();
         const datumObj = eerstvolgendeSchooldag();
+        updateDatumBoven(datumObj);
         const sleutel = naarSleutel(datumObj);
 
         const res = await fetch('./roster.json?t=' + Date.now(), { cache: 'no-store' });
