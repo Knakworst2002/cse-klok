@@ -1,99 +1,189 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>CSE Vertrektijden</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: transparent;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    overflow: hidden;
-  }
-  #wrapper {
-    display: flex;
-    gap: 1.5em;
-    padding: 0.3em 0.6em;
-  }
-  .kolom {
-    flex: 1;
-  }
-  .titel {
-    color: #0fb6ff;
-    font-size: 1.6vw;
-    font-weight: 700;
-    padding: 0.2em 0 0.1em 0;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 1.3vw;
-    color: #000000;
-  }
-  th {
-    text-align: left;
-    font-weight: 600;
-    color: #0fb6ff;
-    border-bottom: 2px solid #0fb6ff;
-    padding: 0.2em 0.4em;
-  }
-  td {
-    padding: 0.25em 0.4em;
-    border-bottom: 1px solid rgba(15,182,255,0.25);
-  }
-  .vertraagd {
-    color: #ff5050;
-    font-weight: 700;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>CSE Vertrektijden</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    #wrapper {
+      width: 100%;
+      height: 100%;
+      padding: 2vh 3vw;
+      box-sizing: border-box;
+      display: flex;
+      gap: 3vw;
+    }
+
+    .kolom {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .titel {
+      color: #0fb6ff;
+      font-size: 3.5vh;
+      font-weight: 800;
+      padding: 0.5vh 0;
+      margin-bottom: 1vh;
+      border-bottom: 3px solid #0fb6ff;
+    }
+
+    .tabel-container {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #000000;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 700;
+      color: #0fb6ff;
+      border-bottom: 2px solid #0fb6ff;
+      padding: 1vh 0.5vw;
+    }
+
+    td {
+      padding: 1.2vh 0.5vw;
+      border-bottom: 1px solid rgba(15, 182, 255, 0.25);
+      font-weight: 600;
+    }
+
+    .vertraagd {
+      color: #ff5050;
+      font-weight: 800;
+    }
+
+    .buiten-dienst {
+      color: #777;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
   <div id="wrapper">
     <div class="kolom">
       <div class="titel">🚆 Treinstation: Zwolle Centraal</div>
-      <table>
-        <thead><tr><th>Tijd</th><th>Bestemming</th><th>Spoor</th></tr></thead>
-        <tbody id="rijen-trein"><tr><td colspan="3">Laden...</td></tr></tbody>
-      </table>
+      <div class="tabel-container" id="container-trein">
+        <table>
+          <thead>
+            <tr>
+              <th>Tijd</th>
+              <th>Bestemming</th>
+              <th>Spoor</th>
+            </tr>
+          </thead>
+          <tbody id="rijen-trein">
+            <tr><td colspan="3">Laden...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
     <div class="kolom">
       <div class="titel">🚌 Busstation: Stadionplein</div>
-      <table>
-        <thead><tr><th>Tijd</th><th>Lijn</th><th>Bestemming</th></tr></thead>
-        <tbody id="rijen-bus"><tr><td colspan="3">Laden...</td></tr></tbody>
-      </table>
+      <div class="tabel-container" id="container-bus">
+        <table>
+          <thead>
+            <tr>
+              <th>Tijd</th>
+              <th>Lijn</th>
+              <th>Bestemming</th>
+            </tr>
+          </thead>
+          <tbody id="rijen-bus">
+            <tr><td colspan="3">Laden...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <script>
-    const MAX = 6;
+    const MAX = 7; // Aantal te tonen ritten per kolom
 
-    // --- NS treinen (uit departures.json, zelfde repo) ---
+    // Functie om te controleren of we binnen de gewenste tijd vallen (Ma-Vr, 08:00 - 17:00)
+    function isBinnenBedrijfstijd() {
+      const nu = new Date();
+      const dag = nu.getDay(); // 0 = Zondag, 1 = Maandag, ..., 6 = Zaterdag
+      const uur = nu.getHours();
+
+      const isWerkdag = dag >= 1 && dag <= 5; // Maandag t/m Vrijdag
+      const isBinnenTijd = uur >= 8 && uur < 17; // 08:00 t/m 16:59 (tot 17:00)
+
+      return isWerkdag && isBinnenTijd;
+    }
+
+    // --- NS treinen (Rechtstreeks live van de NS API) ---
     async function updateTrein() {
+      const rijen = document.getElementById('rijen-trein');
+
+      // Check of het binnen openingstijden valt
+      if (!isBinnenBedrijfstijd()) {
+        rijen.innerHTML = '<tr><td colspan="3" class="buiten-dienst">Vertrektijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
+        return;
+      }
+
+      const NS_API_KEY = "4dc7f542739a43c18aab6c59ba32ba5c";
+      const STATION_CODE = "ZL"; // 'ZL' is de stationcode voor Zwolle
+
       try {
-        const res = await fetch('./departures.json?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch(`https://gateway.api.ns.nl/reisinformatie-api/api/v2/departures?station=${STATION_CODE}`, {
+          headers: {
+            'Ocp-Apim-Subscription-Key': NS_API_KEY
+          }
+        });
+
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        const rijen = document.getElementById('rijen-trein');
+        const departures = (data.payload && data.payload.departures) || data.departures || [];
+
         rijen.innerHTML = '';
-        data.payload.departures.slice(0, MAX).forEach(v => {
-          const tijd = new Date(v.actualDateTime || v.plannedDateTime);
+
+        if (departures.length === 0) {
+          rijen.innerHTML = '<tr><td colspan="3">Geen actuele vertrektijden gevonden</td></tr>';
+          return;
+        }
+
+        departures.slice(0, MAX).forEach(v => {
+          const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
+          const actualStr = v.actualDateTime || v.actualDepartureTime;
+
+          const tijd = new Date(actualStr || plannedStr);
           const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-          const vertraagd = v.actualDateTime && v.actualDateTime !== v.plannedDateTime;
-          const spoor = v.actualTrack || v.plannedTrack || '-';
+          const vertraagd = actualStr && actualStr !== plannedStr;
+
+          const bestemming = v.direction || v.destination || '-';
+          const spoor = v.actualTrack || (v.plannedTrackInfo && v.plannedTrackInfo.actualTrack) || v.plannedTrack || '-';
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td class="${vertraagd ? 'vertraagd' : ''}">${tijdStr}</td>
-            <td>${v.direction}</td>
+            <td>${bestemming}</td>
             <td>${spoor}</td>
           `;
           rijen.appendChild(tr);
         });
       } catch (e) {
-        document.getElementById('rijen-trein').innerHTML = '<tr><td colspan="3">Kan treintijden niet ophalen</td></tr>';
+        rijen.innerHTML = '<tr><td colspan="3">Kan live treintijden niet ophalen</td></tr>';
       }
+      schaalTekstIn();
     }
 
     // --- Bussen (uit buses.json, zelfde repo) ---
@@ -103,7 +193,6 @@
       const komend = departures.filter(d => d.departure_time >= nuStr);
       const bron = komend.length ? komend : departures;
 
-      // Dedupliceren: zelfde tijd+lijn+bestemming (verschillende trip_id's) telt als 1 vertrek
       const gezien = new Set();
       const uniek = [];
       for (const d of bron) {
@@ -117,12 +206,19 @@
     }
 
     async function updateBus() {
+      const rijen = document.getElementById('rijen-bus');
+
+      if (!isBinnenBedrijfstijd()) {
+        rijen.innerHTML = '<tr><td colspan="3" class="buiten-dienst">Bustijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
+        return;
+      }
+
       try {
         const res = await fetch('./buses.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        const rijen = document.getElementById('rijen-bus');
         rijen.innerHTML = '';
+
         const eerstvolgende = volgendeVertrekken(data.departures, MAX);
         eerstvolgende.forEach(b => {
           const tijdStr = b.departure_time.slice(0, 5); // HH:MM
@@ -135,14 +231,29 @@
           rijen.appendChild(tr);
         });
       } catch (e) {
-        document.getElementById('rijen-bus').innerHTML = '<tr><td colspan="3">Kan bustijden niet ophalen</td></tr>';
+        rijen.innerHTML = '<tr><td colspan="3">Kan bustijden niet ophalen</td></tr>';
       }
+      schaalTekstIn();
     }
 
+    // --- Automatische tekst-schaalfunctie op basis van schermhoogte ---
+    function schaalTekstIn() {
+      const tafels = document.querySelectorAll('table');
+      let fontSize = window.innerHeight * 0.028;
+
+      tafels.forEach(tafel => {
+        tafel.style.fontSize = fontSize + 'px';
+      });
+    }
+
+    // Initialiseren en elke 60 seconden verversen
     updateTrein();
     updateBus();
+
     setInterval(updateTrein, 60 * 1000);
     setInterval(updateBus, 60 * 1000);
+
+    window.addEventListener('resize', schaalTekstIn);
   </script>
 </body>
 </html>
