@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>CSE Analoge Klok</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  #klok-wrapper {
+    position: relative;
+    width: min(80vw, 80vh);
+    height: min(80vw, 80vh);
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  #logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22%;
+    height: 22%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+  }
+  #logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+</style>
+</head>
+<body>
+  <div id="klok-wrapper">
+    <svg viewBox="0 0 200 200">
+      <!-- Wijzerplaat -->
+      <circle cx="100" cy="100" r="96" fill="none" stroke="#0fb6ff" stroke-width="6"/>
+
+      <!-- Uurstrepen + cijfers, gegenereerd via JS -->
+      <g id="markeringen"></g>
+
+      <!-- Wijzers -->
+      <line id="uurwijzer" x1="100" y1="100" x2="100" y2="55" stroke="#0fb6ff" stroke-width="6" stroke-linecap="round"/>
+      <line id="minutenwijzer" x1="100" y1="100" x2="100" y2="30" stroke="#0fb6ff" stroke-width="4" stroke-linecap="round"/>
+      <line id="secondewijzer" x1="100" y1="100" x2="100" y2="20" stroke="#0fb6ff" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+
+      <circle cx="100" cy="100" r="4" fill="#0fb6ff"/>
+    </svg>
+
+    <div id="logo">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjgQCHm_rm8g8MAeU3VgKpOuRrUtSnEVEA_QbLqrm_-4tT7BFiVHnMmjgF&s=10" alt="CSE logo">
+    </div>
+  </div>
+
+  <script>
+    // Uurcijfers + strepen genereren
+    const markeringen = document.getElementById('markeringen');
+    for (let i = 1; i <= 12; i++) {
+      const hoek = (i * 30 - 90) * (Math.PI / 180);
+      const xText = 100 + 78 * Math.cos(hoek);
+      const yText = 100 + 78 * Math.sin(hoek);
+
+      const tekst = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      tekst.setAttribute('x', xText);
+      tekst.setAttribute('y', yText + 5);
+      tekst.setAttribute('text-anchor', 'middle');
+      tekst.setAttribute('font-size', '14');
+      tekst.setAttribute('font-family', 'Segoe UI, Arial, sans-serif');
+      tekst.setAttribute('font-weight', '700');
+      tekst.setAttribute('fill', '#0fb6ff');
+      tekst.textContent = i;
+      markeringen.appendChild(tekst);
+    }
+    // Minuutstreepjes (elke 5 min een dikkere, elke minuut een dunne)
+    for (let i = 0; i < 60; i++) {
+      const hoek = (i * 6 - 90) * (Math.PI / 180);
+      const dik = i % 5 === 0;
+      const r1 = dik ? 88 : 92;
+      const r2 = 96;
+      const lijn = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      lijn.setAttribute('x1', 100 + r1 * Math.cos(hoek));
+      lijn.setAttribute('y1', 100 + r1 * Math.sin(hoek));
+      lijn.setAttribute('x2', 100 + r2 * Math.cos(hoek));
+      lijn.setAttribute('y2', 100 + r2 * Math.sin(hoek));
+      lijn.setAttribute('stroke', '#0fb6ff');
+      lijn.setAttribute('stroke-width', dik ? 2 : 0.75);
+      markeringen.appendChild(lijn);
+    }
+
+    // Wijzers live bijwerken
+    function updateKlok() {
+      const nu = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+      const uren = nu.getHours() % 12;
+      const minuten = nu.getMinutes();
+      const seconden = nu.getSeconds();
+
+      const uurHoek = (uren + minuten / 60) * 30 - 90;
+      const minutenHoek = (minuten + seconden / 60) * 6 - 90;
+      const secondeHoek = seconden * 6 - 90;
+
+      zetWijzer('uurwijzer', uurHoek, 45);
+      zetWijzer('minutenwijzer', minutenHoek, 70);
+      zetWijzer('secondewijzer', secondeHoek, 80);
+    }
+
+    function zetWijzer(id, hoekGraden, lengte) {
+      const rad = hoekGraden * (Math.PI / 180);
+      const x = 100 + lengte * Math.cos(rad);
+      const y = 100 + lengte * Math.sin(rad);
+      const el = document.getElementById(id);
+      el.setAttribute('x2', x);
+      el.setAttribute('y2', y);
+    }
+
+    updateKlok();
+    setInterval(updateKlok, 1000);
+  </script>
+</body>
+</html>
