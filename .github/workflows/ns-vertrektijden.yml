@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Repository ophalen
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Python instellen
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.12"
 
@@ -27,19 +27,24 @@ jobs:
         run: |
           python - <<'PY'
           import urllib.request
+          import urllib.error
           import os
           import json
           import time
 
+          api_key = os.environ.get("NS_API_KEY", "").strip()
+
+          if not api_key:
+              print("ERROR: Secret 'NS_API_KEY' is niet gevonden of is leeg in GitHub Repository Settings!")
+              exit(1)
+
           url = "https://gateway.api.ns.nl/reisinformatie-api/api/v2/departures?station=ZL&maxJourneys=25"
-          api_key = os.environ.get("NS_API_KEY", "")
 
           req = urllib.request.Request(url, headers={
               "Ocp-Apim-Subscription-Key": api_key,
               "User-Agent": "Mozilla/5.0"
           })
 
-          # Probeer 3 keer bij netwerk- of DNS-problemen
           for poging in range(3):
               try:
                   with urllib.request.urlopen(req, timeout=10) as response:
@@ -48,6 +53,12 @@ jobs:
                           json.dump(data, f, ensure_ascii=False, indent=2)
                       print("Treingegevens succesvol opgehaald!")
                       break
+              except urllib.error.HTTPError as e:
+                  print(f"HTTP Fout {e.code}: {e.reason}")
+                  if e.code in (401, 403):
+                      print("Controleer of de NS_API_KEY in GitHub Secrets correct is en actief is op apiportal.ns.nl")
+                      exit(1)
+                  time.sleep(3)
               except Exception as e:
                   print(f"Poging {poging + 1} mislukt: {e}")
                   if poging < 2:
