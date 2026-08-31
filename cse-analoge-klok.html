@@ -24,20 +24,6 @@
     height: 100%;
     overflow: visible;
   }
-  #logo {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 22%;
-    height: 22%;
-    transform: translate(-50%, -50%);
-    z-index: 5;
-  }
-  #logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
 </style>
 </head>
 <body>
@@ -45,6 +31,9 @@
     <svg viewBox="0 0 200 200">
       <!-- Wijzerplaat -->
       <circle cx="100" cy="100" r="96" fill="none" stroke="#0fb6ff" stroke-width="6"/>
+
+      <!-- Logo op de achtergrond, tussen middelpunt en 12 -->
+      <image href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjgQCHm_rm8g8MAeU3VgKpOuRrUtSnEVEA_QbLqrm_-4tT7BFiVHnMmjgF&s=10" x="78" y="45" width="44" height="44" preserveAspectRatio="xMidYMid meet"/>
 
       <!-- Uurstrepen + cijfers, gegenereerd via JS -->
       <g id="markeringen"></g>
@@ -56,10 +45,6 @@
 
       <circle cx="100" cy="100" r="4" fill="#0fb6ff"/>
     </svg>
-
-    <div id="logo">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjgQCHm_rm8g8MAeU3VgKpOuRrUtSnEVEA_QbLqrm_-4tT7BFiVHnMmjgF&s=10" alt="CSE logo">
-    </div>
   </div>
 
   <script>
