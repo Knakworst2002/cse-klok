@@ -108,15 +108,15 @@ const ouderavonden = {
     titel: "Ouderavond",
     data: [
       { klas: "2BK", leraar: "Mariana", lokaal: "1" },
-      { klas: "2TL", leraar: "George & Tamme", lokaal: "7" },
+      { klas: "3TLb", leraar: "Joleen", lokaal: "2" },
+      { klas: "3TLa", leraar: "Rudi", lokaal: "3" },
       { klas: "2Hb", leraar: "Ferry", lokaal: "4" },
       { klas: "2Ha", leraar: "Annemieke", lokaal: "5" },
       { klas: "2V", leraar: "Jasmijn", lokaal: "6" },
+      { klas: "2TL", leraar: "George & Tamme", lokaal: "7" },
+      { klas: "3Ha", leraar: "Allard", lokaal: "8" },
       { klas: "3BK", leraar: "Hans", lokaal: "9a" },
       { klas: "3Hb", leraar: "Meyke", lokaal: "9b" },
-      { klas: "3TLb", leraar: "Joleen", lokaal: "2" },
-      { klas: "3TLa", leraar: "Rudi", lokaal: "3" },
-      { klas: "3Ha", leraar: "Allard", lokaal: "8" },
       { klas: "3V", leraar: "Mieke", lokaal: "12" }
     ]
   },
@@ -132,12 +132,12 @@ const ouderavonden = {
   }
 };
 
-// Bepaal de verdieping op basis van klas- en lokaalnummer
+// Bepaal de verdieping op basis van het lokaalnummer (1 t/m 9 = Begane grond, >9 = 1e Verdieping)
 function bepaalVerdieping(item) {
-  const lokaal = item.lokaal.toString().toLowerCase().trim();
+  // Haal alleen de cijfers uit het lokaalnummer (bijv. "9a" -> 9)
+  const lokaalNummer = parseInt(item.lokaal.toString().replace(/\D/g, ''), 10);
   
-  // Lokalen 9a en 9b vallen op de Begane grond, net als klassen 1 & 2
-  if (lokaal === "9a" || lokaal === "9b" || item.klas.startsWith("1") || item.klas.startsWith("2")) {
+  if (!isNaN(lokaalNummer) && lokaalNummer <= 9) {
     return "Begane grond";
   }
   return "1e Verdieping (Boven)";
