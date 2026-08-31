@@ -116,47 +116,33 @@
   </div>
 
   <script>
-    const MAX = 7; // Aantal te tonen ritten per kolom
+    const MAX = 7;
 
-    // Functie om te controleren of we binnen de gewenste tijd vallen (Ma-Vr, 08:00 - 17:00)
     function isBinnenBedrijfstijd() {
       const nu = new Date();
-      const dag = nu.getDay(); // 0 = Zondag, 1 = Maandag, ..., 6 = Zaterdag
+      const dag = nu.getDay(); // 1 = Ma, ..., 5 = Vr
       const uur = nu.getHours();
-
-      const isWerkdag = dag >= 1 && dag <= 5; // Maandag t/m Vrijdag
-      const isBinnenTijd = uur >= 8 && uur < 17; // 08:00 t/m 16:59 (tot 17:00)
-
-      return isWerkdag && isBinnenTijd;
+      return (dag >= 1 && dag <= 5) && (uur >= 8 && uur < 17);
     }
 
-    // --- NS treinen (Rechtstreeks live van de NS API) ---
+    // --- Treinen uit departures.json ---
     async function updateTrein() {
       const rijen = document.getElementById('rijen-trein');
 
-      // Check of het binnen openingstijden valt
       if (!isBinnenBedrijfstijd()) {
         rijen.innerHTML = '<tr><td colspan="3" class="buiten-dienst">Vertrektijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
         return;
       }
 
-      const NS_API_KEY = "4dc7f542739a43c18aab6c59ba32ba5c";
-      const STATION_CODE = "ZL"; // 'ZL' is de stationcode voor Zwolle
-
       try {
-        const res = await fetch(`https://gateway.api.ns.nl/reisinformatie-api/api/v2/departures?station=${STATION_CODE}`, {
-          headers: {
-            'Ocp-Apim-Subscription-Key': NS_API_KEY
-          }
-        });
-
+        const res = await fetch('./departures.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        const departures = (data.payload && data.payload.departures) || data.departures || [];
-
+        
+        const departures = (data.payload && data.payload.departures) || data.departures || data;
         rijen.innerHTML = '';
 
-        if (departures.length === 0) {
+        if (!Array.isArray(departures) || departures.length === 0) {
           rijen.innerHTML = '<tr><td colspan="3">Geen actuele vertrektijden gevonden</td></tr>';
           return;
         }
@@ -181,15 +167,15 @@
           rijen.appendChild(tr);
         });
       } catch (e) {
-        rijen.innerHTML = '<tr><td colspan="3">Kan live treintijden niet ophalen</td></tr>';
+        rijen.innerHTML = '<tr><td colspan="3">Kan treintijden niet ophalen</td></tr>';
       }
       schaalTekstIn();
     }
 
-    // --- Bussen (uit buses.json, zelfde repo) ---
+    // --- Bussen uit buses.json ---
     function volgendeVertrekken(departures, aantal) {
       const nu = new Date();
-      const nuStr = nu.toTimeString().slice(0, 8); // HH:MM:SS
+      const nuStr = nu.toTimeString().slice(0, 8);
       const komend = departures.filter(d => d.departure_time >= nuStr);
       const bron = komend.length ? komend : departures;
 
@@ -221,7 +207,7 @@
 
         const eerstvolgende = volgendeVertrekken(data.departures, MAX);
         eerstvolgende.forEach(b => {
-          const tijdStr = b.departure_time.slice(0, 5); // HH:MM
+          const tijdStr = b.departure_time.slice(0, 5);
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${tijdStr}</td>
@@ -236,17 +222,14 @@
       schaalTekstIn();
     }
 
-    // --- Automatische tekst-schaalfunctie op basis van schermhoogte ---
     function schaalTekstIn() {
       const tafels = document.querySelectorAll('table');
       let fontSize = window.innerHeight * 0.028;
-
       tafels.forEach(tafel => {
         tafel.style.fontSize = fontSize + 'px';
       });
     }
 
-    // Initialiseren en elke 60 seconden verversen
     updateTrein();
     updateBus();
 
