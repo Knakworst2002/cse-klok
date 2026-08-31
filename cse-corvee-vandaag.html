@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<title>CSE Corvee Rooster</title>
+<title>CSE Corvee Vandaag</title>
 <style>
   html, body {
     margin: 0;
@@ -51,12 +51,6 @@
     padding: 0.3em 0.5em;
     border-bottom: 1px solid rgba(0,0,0,0.15);
   }
-  #geen-corvee {
-    color: rgba(0,0,0,0.6);
-    font-size: 1.8vw;
-    font-style: italic;
-    margin-top: 0.8em;
-  }
 </style>
 </head>
 <body>
@@ -70,69 +64,64 @@
   </div>
 
   <script>
-    function vandaagSleutel() {
-      // Preview-optie: voeg ?datum=JJJJ-MM-DD toe aan de URL om een andere dag te bekijken
+    // Weekend overslaan: op za/zo tonen we de laatst gepasseerde schooldag (vrijdag)
+    function schooldagVoorVandaag() {
       const params = new URLSearchParams(window.location.search);
       const override = params.get('datum');
-      if (override) return override;
-
-      // Datum als YYYY-MM-DD in Europe/Amsterdam, zodat het altijd bij de juiste dag hoort
-      const nu = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
-      const jaar = nu.getFullYear();
-      const maand = String(nu.getMonth() + 1).padStart(2, '0');
-      const dag = String(nu.getDate()).padStart(2, '0');
-      return `${jaar}-${maand}-${dag}`;
-    }
-
-    function morgenSleutel() {
-      const params = new URLSearchParams(window.location.search);
-      const override = params.get('datum');
-      const basis = override
+      const nu = override
         ? new Date(override + 'T00:00:00')
         : new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
-      basis.setDate(basis.getDate() + 1);
-      const jaar = basis.getFullYear();
-      const maand = String(basis.getMonth() + 1).padStart(2, '0');
-      const dag = String(basis.getDate()).padStart(2, '0');
+
+      const weekdag = nu.getDay(); // 0 = zondag, 6 = zaterdag
+      if (weekdag === 6) nu.setDate(nu.getDate() - 1); // zaterdag -> vrijdag
+      if (weekdag === 0) nu.setDate(nu.getDate() - 2); // zondag -> vrijdag
+
+      return nu;
+    }
+
+    function naarSleutel(datumObj) {
+      const jaar = datumObj.getFullYear();
+      const maand = String(datumObj.getMonth() + 1).padStart(2, '0');
+      const dag = String(datumObj.getDate()).padStart(2, '0');
       return `${jaar}-${maand}-${dag}`;
     }
 
-    function updateDatum() {
-      const params = new URLSearchParams(window.location.search);
-      const override = params.get('datum');
-      const nu = override ? new Date(override + 'T00:00:00') : new Date();
+    function updateDatum(datumObj) {
       const datumStr = new Intl.DateTimeFormat('nl-NL', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
-        timeZone: override ? 'UTC' : 'Europe/Amsterdam'
-      }).format(nu);
+        timeZone: 'UTC'
+      }).format(datumObj);
       document.getElementById('datum').textContent = 'Vandaag: ' + datumStr;
     }
 
     async function updateCorvee() {
       try {
+        const datumObj = schooldagVoorVandaag();
+        updateDatum(datumObj);
+        const sleutel = naarSleutel(datumObj);
+
         const res = await fetch('./roster.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        const sleutel = morgenSleutel();
-        const morgen = data[sleutel];
+        const dag = data[sleutel];
 
         const titelEl = document.getElementById('titel');
         const rijenEl = document.getElementById('rijen');
         const tabelEl = document.getElementById('tabel');
         rijenEl.innerHTML = '';
 
-        if (!morgen || !morgen.rows || morgen.rows.length === 0) {
-          titelEl.textContent = 'Geen corvee ingepland voor morgen';
+        if (!dag || !dag.rows || dag.rows.length === 0) {
+          titelEl.textContent = 'Geen corvee ingepland voor vandaag';
           tabelEl.style.display = 'none';
           return;
         }
 
         tabelEl.style.display = '';
-        titelEl.textContent = morgen.header || '';
+        titelEl.textContent = dag.header || '';
 
-        morgen.rows.forEach(rij => {
+        dag.rows.forEach(rij => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${rij.klas}</td>
@@ -147,9 +136,7 @@
       }
     }
 
-    updateDatum();
     updateCorvee();
-    setInterval(updateDatum, 60 * 1000);
     setInterval(updateCorvee, 5 * 60 * 1000); // elke 5 min verversen
   </script>
 </body>
