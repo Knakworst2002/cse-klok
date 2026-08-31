@@ -3,7 +3,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>CSE Corvee Vandaag</title>
+  <title>CSE Corvee Morgen</title>
 
   <style>
     html, body {
@@ -106,6 +106,22 @@
     );
   }
 
+  function volgendeSchooldag(datum) {
+    datum.setDate(datum.getDate() + 1);
+
+    // Zaterdag -> maandag
+    if (datum.getDay() === 6) {
+      datum.setDate(datum.getDate() + 2);
+    }
+
+    // Zondag -> maandag
+    if (datum.getDay() === 0) {
+      datum.setDate(datum.getDate() + 1);
+    }
+
+    return datum;
+  }
+
   function formatteerDatum(datum) {
     return new Intl.DateTimeFormat("nl-NL", {
       weekday: "long",
@@ -115,22 +131,11 @@
   }
 
   function update() {
-    let datum = getVandaag();
-    let dag = datum.getDay();
-
-    // In het weekend tonen we vrijdag.
-    if (dag === 6) {
-      datum.setDate(datum.getDate() - 1);
-      dag = 5;
-    }
-
-    if (dag === 0) {
-      datum.setDate(datum.getDate() - 2);
-      dag = 5;
-    }
+    const datum = volgendeSchooldag(getVandaag());
+    const dag = datum.getDay();
 
     document.getElementById("datum-boven").textContent =
-      "Vandaag, " + formatteerDatum(datum) + ", hebben corvee:";
+      "Morgen, " + formatteerDatum(datum) + ", hebben corvee:";
 
     const titel = document.getElementById("titel");
     const container = document.getElementById("klassen");
@@ -161,7 +166,7 @@
 
   update();
 
-  // Elke 5 minuten controleren of de datum veranderd is.
+  // Elke 5 minuten controleren.
   setInterval(update, 5 * 60 * 1000);
 </script>
 
