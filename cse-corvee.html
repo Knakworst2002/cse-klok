@@ -13,7 +13,7 @@
     overflow: hidden;
   }
   #wrapper {
-    padding: 2.5vw 3vw;
+    padding: 2vw 3vw;
     box-sizing: border-box;
     height: 100%;
     display: flex;
@@ -21,47 +21,43 @@
   }
   #titel {
     color: #0fb6ff;
-    font-size: 4.5vw;
+    font-size: 3.2vw;
     font-weight: 800;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-  }
-  #datum {
-    color: #000000;
-    font-size: 2vw;
-    font-weight: 500;
-    text-transform: uppercase;
     letter-spacing: 0.02em;
-    border-top: 1px dashed rgba(0,0,0,0.3);
-    padding-top: 0.6em;
-    margin-top: 0.4em;
   }
-  #namen {
-    margin-top: 0.6em;
-    border-top: 1px dashed rgba(0,0,0,0.3);
-    padding-top: 0.6em;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55em;
-    overflow: hidden;
+  table {
+    margin-top: 0.8em;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 2vw;
   }
-  #namen div {
+  th {
+    text-align: left;
+    font-weight: 700;
+    color: #0fb6ff;
+    border-bottom: 2px solid #0fb6ff;
+    padding: 0.25em 0.5em;
+  }
+  td {
     color: #000000;
-    font-size: 2.6vw;
-    font-weight: 400;
+    padding: 0.3em 0.5em;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
   }
   #geen-corvee {
     color: rgba(0,0,0,0.6);
     font-size: 1.8vw;
     font-style: italic;
+    margin-top: 0.8em;
   }
 </style>
 </head>
 <body>
   <div id="wrapper">
-    <div id="titel">Corvee Rooster</div>
-    <div id="datum">--</div>
-    <div id="namen"></div>
+    <div id="titel">--</div>
+    <table id="tabel">
+      <thead><tr><th>Klas</th><th>Collega</th><th>Lokaal</th></tr></thead>
+      <tbody id="rijen"></tbody>
+    </table>
   </div>
 
   <script>
@@ -74,50 +70,45 @@
       return `${jaar}-${maand}-${dag}`;
     }
 
-    function updateDatum() {
-      const nu = new Date();
-      const datumStr = new Intl.DateTimeFormat('nl-NL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        timeZone: 'Europe/Amsterdam'
-      }).format(nu);
-      document.getElementById('datum').textContent = datumStr;
-    }
-
-    async function updateNamen() {
+    async function updateCorvee() {
       try {
         const res = await fetch('./roster.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         const sleutel = vandaagSleutel();
-        const namen = data[sleutel];
+        const vandaag = data[sleutel];
 
-        const container = document.getElementById('namen');
-        container.innerHTML = '';
+        const titelEl = document.getElementById('titel');
+        const rijenEl = document.getElementById('rijen');
+        const tabelEl = document.getElementById('tabel');
+        rijenEl.innerHTML = '';
 
-        if (!namen || namen.length === 0) {
-          const leeg = document.createElement('div');
-          leeg.id = 'geen-corvee';
-          leeg.textContent = 'Geen corvee ingepland voor vandaag';
-          container.appendChild(leeg);
+        if (!vandaag || !vandaag.rows || vandaag.rows.length === 0) {
+          titelEl.textContent = 'Geen corvee ingepland voor vandaag';
+          tabelEl.style.display = 'none';
           return;
         }
 
-        namen.forEach(naam => {
-          const regel = document.createElement('div');
-          regel.textContent = naam;
-          container.appendChild(regel);
+        tabelEl.style.display = '';
+        titelEl.textContent = vandaag.header || '';
+
+        vandaag.rows.forEach(rij => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${rij.klas}</td>
+            <td>${rij.collega}</td>
+            <td>${rij.lokaal}</td>
+          `;
+          rijenEl.appendChild(tr);
         });
       } catch (e) {
-        document.getElementById('namen').innerHTML = '<div id="geen-corvee">Kan rooster niet ophalen</div>';
+        document.getElementById('titel').textContent = 'Kan corvee-rooster niet ophalen';
+        document.getElementById('tabel').style.display = 'none';
       }
     }
 
-    updateDatum();
-    updateNamen();
-    setInterval(updateDatum, 60 * 1000);
-    setInterval(updateNamen, 5 * 60 * 1000); // elke 5 min verversen
+    updateCorvee();
+    setInterval(updateCorvee, 5 * 60 * 1000); // elke 5 min verversen
   </script>
 </body>
 </html>
