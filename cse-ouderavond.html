@@ -72,7 +72,7 @@
       color: #000000;
     }
 
-    .col-collega {
+    .col-leraar {
       color: #333333;
     }
 
@@ -92,7 +92,7 @@
   <div id="tabel-container">
     <div class="tabel-rij tabel-header-rij">
       <div class="col-klas">Klas</div>
-      <div class="col-collega">Collega</div>
+      <div class="col-leraar">Leraar/Lerares</div>
       <div class="col-lokaal">Lokaal</div>
     </div>
     <div id="data-rijen"></div>
@@ -102,43 +102,40 @@
 <script>
 // =========================================================================
 // GEGEVENSVOORBEELD / CONFIGURATIE PER OUDERAVOND
-// In de toekomst kun je hier eenvoudig extra avonden/dagen toevoegen!
 // =========================================================================
 const ouderavonden = {
   // Avond 1 (standaard)
   "1": {
     titel: "Ouderavond Leerjaar 2 & 3",
     data: [
-      { klas: "2BK", collega: "Mariana", lokaal: "1" },
-      { klas: "2TL", collega: "George & Tamme", lokaal: "7" },
-      { klas: "2Hb", collega: "Ferry", lokaal: "4" },
-      { klas: "2Ha", collega: "Annemieke", lokaal: "5" },
-      { klas: "2V", collega: "Jasmijn", lokaal: "6" },
-      { klas: "3BK", collega: "Hans", lokaal: "9a" },
-      { klas: "3TLb", collega: "Joleen", lokaal: "2" },
-      { klas: "3TLa", collega: "Rudi", lokaal: "3" },
-      { klas: "3Ha", collega: "Allard", lokaal: "8" },
-      { klas: "3Hb", collega: "Meyke", lokaal: "9b" },
-      { klas: "3V", collega: "Mieke", lokaal: "12" }
+      { klas: "2BK", leraar: "Mariana", lokaal: "1" },
+      { klas: "2TL", leraar: "George & Tamme", lokaal: "7" },
+      { klas: "2Hb", leraar: "Ferry", lokaal: "4" },
+      { klas: "2Ha", leraar: "Annemieke", lokaal: "5" },
+      { klas: "2V", leraar: "Jasmijn", lokaal: "6" },
+      { klas: "3BK", leraar: "Hans", lokaal: "9a" },
+      { klas: "3TLb", leraar: "Joleen", lokaal: "2" },
+      { klas: "3TLa", leraar: "Rudi", lokaal: "3" },
+      { klas: "3Ha", leraar: "Allard", lokaal: "8" },
+      { klas: "3Hb", leraar: "Meyke", lokaal: "9b" },
+      { klas: "3V", leraar: "Mieke", lokaal: "12" }
     ]
   },
   
-  // Avond 2 (Voorbeeld voor een volgende keer)
+  // Avond 2 (Voorbeeld)
   "2": {
     titel: "Ouderavond Leerjaar 1, 4, 5 & 6",
     data: [
-      { klas: "1BK", collega: "Jan", lokaal: "1" },
-      { klas: "1THa", collega: "Karin", lokaal: "2" },
-      { klas: "4V", collega: "Peter", lokaal: "10" },
-      { klas: "5V", collega: "Sanne", lokaal: "11" }
+      { klas: "1BK", leraar: "Jan", lokaal: "1" },
+      { klas: "1THa", leraar: "Karin", lokaal: "2" },
+      { klas: "4V", leraar: "Peter", lokaal: "10" },
+      { klas: "5V", leraar: "Sanne", lokaal: "11" }
     ]
   }
 };
 
 // Functie die op basis van de klas-naam bepaalt op welke verdieping de klas zit
 function bepaalVerdieping(klas) {
-  // Voorbeeldregels op basis van klasnaam:
-  // Klas 1 en 2 op Begane grond, klas 3 t/m 6 op de 1e Verdieping
   if (klas.startsWith("1") || klas.startsWith("2")) {
     return "Begane grond";
   }
@@ -180,7 +177,7 @@ function laadOuderavond() {
     div.className = "tabel-rij";
     div.innerHTML = `
       <div class="col-klas">${item.klas}</div>
-      <div class="col-collega">${item.collega}</div>
+      <div class="col-leraar">${item.leraar || item.collega || ""}</div>
       <div class="col-lokaal">${item.lokaal}</div>
     `;
     container.appendChild(div);
