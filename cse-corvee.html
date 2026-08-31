@@ -20,6 +20,128 @@
     flex-direction: column;
   }
   #titel {
+    color: #0fb6ff;
+    font-size: 4.5vw;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  #datum {
+    color: #000000;
+    font-size: 2vw;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-top: 1px dashed rgba(0,0,0,0.3);
+    padding-top: 0.6em;
+    margin-top: 0.4em;
+  }
+  #namen {
+    margin-top: 0.6em;
+    border-top: 1px dashed rgba(0,0,0,0.3);
+    padding-top: 0.6em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55em;
+    overflow: hidden;
+  }
+  #namen div {
+    color: #000000;
+    font-size: 2.6vw;
+    font-weight: 400;
+  }
+  #geen-corvee {
+    color: rgba(0,0,0,0.6);
+    font-size: 1.8vw;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="titel">Corvee Rooster</div>
+    <div id="datum">--</div>
+    <div id="namen"></div>
+  </div>
+
+  <script>
+    function vandaagSleutel() {
+      // Datum als YYYY-MM-DD in Europe/Amsterdam, zodat het altijd bij de juiste dag hoort
+      const nu = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+      const jaar = nu.getFullYear();
+      const maand = String(nu.getMonth() + 1).padStart(2, '0');
+      const dag = String(nu.getDate()).padStart(2, '0');
+      return `${jaar}-${maand}-${dag}`;
+    }
+
+    function updateDatum() {
+      const nu = new Date();
+      const datumStr = new Intl.DateTimeFormat('nl-NL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        timeZone: 'Europe/Amsterdam'
+      }).format(nu);
+      document.getElementById('datum').textContent = datumStr;
+    }
+
+    async function updateNamen() {
+      try {
+        const res = await fetch('./roster.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const sleutel = vandaagSleutel();
+        const namen = data[sleutel];
+
+        const container = document.getElementById('namen');
+        container.innerHTML = '';
+
+        if (!namen || namen.length === 0) {
+          const leeg = document.createElement('div');
+          leeg.id = 'geen-corvee';
+          leeg.textContent = 'Geen corvee ingepland voor vandaag';
+          container.appendChild(leeg);
+          return;
+        }
+
+        namen.forEach(naam => {
+          const regel = document.createElement('div');
+          regel.textContent = naam;
+          container.appendChild(regel);
+        });
+      } catch (e) {
+        document.getElementById('namen').innerHTML = '<div id="geen-corvee">Kan rooster niet ophalen</div>';
+      }
+    }
+
+    updateDatum();
+    updateNamen();
+    setInterval(updateDatum, 60 * 1000);
+    setInterval(updateNamen, 5 * 60 * 1000); // elke 5 min verversen
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>CSE Corvee Rooster</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+  }
+  #wrapper {
+    padding: 2.5vw 3vw;
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  #titel {
     color: #000000;
     font-size: 4.5vw;
     font-weight: 800;
