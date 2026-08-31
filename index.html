@@ -27,21 +27,11 @@
     letter-spacing: 0.05em;
     line-height: 1;
   }
-  #datum {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 2.2vw;
-    font-weight: 500;
-    color: #0fb6ff;
-    letter-spacing: 0.05em;
-    text-transform: capitalize;
-    margin-top: -0.4em;
-  }
 </style>
 </head>
 <body>
   <div id="wrapper">
     <div id="klok">--:--</div>
-    <div id="datum">--</div>
   </div>
   <script>
     function updateKlok() {
@@ -54,15 +44,6 @@
         timeZone: 'Europe/Amsterdam'
       }).format(nu);
       document.getElementById('klok').textContent = tijd;
-
-      const datum = new Intl.DateTimeFormat('nl-NL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'Europe/Amsterdam'
-      }).format(nu);
-      document.getElementById('datum').textContent = datum;
     }
     updateKlok();
     setInterval(updateKlok, 1000);
