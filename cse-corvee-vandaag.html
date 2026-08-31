@@ -1,156 +1,143 @@
+```html
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>CSE Corvee Vandaag</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: #ffffff;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    overflow: hidden;
-  }
-  #wrapper {
-    padding: 2vh 2.5vh;
-    box-sizing: border-box;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #datum-boven {
-    color: #0fb6ff;
-    font-size: 2.2vh;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin-bottom: 0.3vh;
-  }
-  #titel {
-    color: #0fb6ff;
-    font-size: 4.2vh;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-  }
-  table {
-    margin-top: 1vh;
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 2.6vh;
-  }
-  th {
-    text-align: left;
-    font-weight: 700;
-    color: #0fb6ff;
-    border-bottom: 2px solid #0fb6ff;
-    padding: 0.15em 0.5em;
-  }
-  td {
-    color: #000000;
-    padding: 0.15em 0.5em;
-    border-bottom: 1px solid rgba(0,0,0,0.15);
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>CSE Corvee Vandaag</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #ffffff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #wrapper {
+      padding: 2vh 2.5vh;
+      box-sizing: border-box;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #datum-boven {
+      color: #0fb6ff;
+      font-size: 4.2vh;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.3vh;
+    }
+
+    #titel {
+      color: #0fb6ff;
+      font-size: 2.2vh;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 1vh;
+    }
+
+    #klassen {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4vh;
+    }
+
+    .klas {
+      color: #000000;
+      font-size: 3.2vh;
+      font-weight: 600;
+      padding: 0.25em 0.5em;
+      border-bottom: 1px solid rgba(0,0,0,0.15);
+    }
+  </style>
 </head>
+
 <body>
-  <div id="wrapper">
-    <div id="datum-boven">--</div>
-    <div id="titel">--</div>
-    <table id="tabel">
-      <thead><tr><th>Klas</th><th>Collega</th><th>Lokaal</th></tr></thead>
-      <tbody id="rijen"></tbody>
-    </table>
-  </div>
 
-  <script>
-    // Weekend overslaan: op za/zo tonen we de laatst gepasseerde schooldag (vrijdag)
-    function schooldagVoorVandaag() {
-      const params = new URLSearchParams(window.location.search);
-      const override = params.get('datum');
-      const nu = override
-        ? new Date(override + 'T00:00:00')
-        : new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+<div id="wrapper">
+  <div id="datum-boven">--</div>
+  <div id="titel">--</div>
+  <div id="klassen"></div>
+</div>
 
-      const weekdag = nu.getDay(); // 0 = zondag, 6 = zaterdag
-      if (weekdag === 6) nu.setDate(nu.getDate() - 1); // zaterdag -> vrijdag
-      if (weekdag === 0) nu.setDate(nu.getDate() - 2); // zondag -> vrijdag
+<script>
+  const corvee = {
+    1: ["6V", "5V", "5Hb", "5Ha", "4V"],
+    2: ["4Hb", "4Ha", "4TL", "4BK", "3V"],
+    3: ["3Hb", "3Ha", "3TLb", "3TLa", "3BK"],
+    4: ["2V", "2Hb", "2Ha", "2TL", "2BK"],
+    5: ["1HVb", "1Hva", "1THb", "1THa", "1BK"]
+  };
 
-      return nu;
+  function getVandaag() {
+    const params = new URLSearchParams(window.location.search);
+    const override = params.get("datum");
+
+    if (override) {
+      return new Date(override + "T00:00:00");
     }
 
-    function naarSleutel(datumObj) {
-      const jaar = datumObj.getFullYear();
-      const maand = String(datumObj.getMonth() + 1).padStart(2, '0');
-      const dag = String(datumObj.getDate()).padStart(2, '0');
-      return `${jaar}-${maand}-${dag}`;
+    return new Date(
+      new Date().toLocaleString("en-US", {
+        timeZone: "Europe/Amsterdam"
+      })
+    );
+  }
+
+  function formatteerDatum(datum) {
+    return new Intl.DateTimeFormat("nl-NL", {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    }).format(datum);
+  }
+
+  function update() {
+    let datum = getVandaag();
+    let dag = datum.getDay();
+
+    // Weekend: vrijdag tonen
+    if (dag === 6) {
+      datum.setDate(datum.getDate() - 1);
+      dag = 5;
     }
 
-    function veiligWeergaveDatum(datumObj) {
-      // Bouwt een UTC-middag-Date uit de lokale jaar/maand/dag-waarden,
-      // zodat formatteren nooit naar de verkeerde dag verschuift.
-      return new Date(Date.UTC(
-        datumObj.getFullYear(),
-        datumObj.getMonth(),
-        datumObj.getDate(),
-        12
-      ));
+    if (dag === 0) {
+      datum.setDate(datum.getDate() - 2);
+      dag = 5;
     }
 
-    function updateDatumBoven(datumObj) {
-      const veilig = veiligWeergaveDatum(datumObj);
-      const datumStr = new Intl.DateTimeFormat('nl-NL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        timeZone: 'UTC'
-      }).format(veilig);
-      document.getElementById('datum-boven').textContent = 'Vandaag, ' + datumStr + ', hebben corvee:';
+    document.getElementById("datum-boven").textContent =
+      "Vandaag, " + formatteerDatum(datum) + ", hebben corvee:";
+
+    document.getElementById("titel").textContent =
+      "De volgende klassen zijn aan de beurt:";
+
+    const container = document.getElementById("klassen");
+    container.innerHTML = "";
+
+    if (!corvee[dag]) {
+      document.getElementById("titel").textContent = "Geen corvee";
+      return;
     }
 
-    async function updateCorvee() {
-      try {
-        const datumObj = schooldagVoorVandaag();
-        updateDatumBoven(datumObj);
-        const sleutel = naarSleutel(datumObj);
+    corvee[dag].forEach(klas => {
+      const div = document.createElement("div");
+      div.className = "klas";
+      div.textContent = klas;
+      container.appendChild(div);
+    });
+  }
 
-        const res = await fetch('./roster.json?t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        const dag = data[sleutel];
+  update();
+  setInterval(update, 5 * 60 * 1000);
+</script>
 
-        const titelEl = document.getElementById('titel');
-        const rijenEl = document.getElementById('rijen');
-        const tabelEl = document.getElementById('tabel');
-        rijenEl.innerHTML = '';
-
-        if (!dag || !dag.rows || dag.rows.length === 0) {
-          titelEl.textContent = 'Geen corvee ingepland voor vandaag';
-          tabelEl.style.display = 'none';
-          return;
-        }
-
-        tabelEl.style.display = '';
-        titelEl.textContent = dag.header || '';
-
-        dag.rows.forEach(rij => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${rij.klas}</td>
-            <td>${rij.collega}</td>
-            <td>${rij.lokaal}</td>
-          `;
-          rijenEl.appendChild(tr);
-        });
-      } catch (e) {
-        document.getElementById('titel').textContent = 'Kan corvee-rooster niet ophalen';
-        document.getElementById('tabel').style.display = 'none';
-      }
-    }
-
-    updateCorvee();
-    setInterval(updateCorvee, 5 * 60 * 1000); // elke 5 min verversen
-  </script>
 </body>
 </html>
+```
