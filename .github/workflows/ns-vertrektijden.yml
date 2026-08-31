@@ -14,13 +14,13 @@ jobs:
 
     steps:
       - name: Repository ophalen
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Treingegevens ophalen van NS API (25 ritten)
         env:
           NS_API_KEY: ${{ secrets.NS_API_KEY }}
         run: |
-          curl -s -H "Ocp-Apim-Subscription-Key: $NS_API_KEY" \
+          curl -s --retry 3 --retry-delay 2 --fail -H "Ocp-Apim-Subscription-Key: $NS_API_KEY" \
           "https://gateway.api.ns.nl/reisinformatie-api/api/v2/departures?station=ZL&maxJourneys=25" \
           -o trein.json
 
