@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Ouderavond Lokaalindeling</title>
+  <title>Ouderavond Leerjaar 2 & 3</title>
 
   <style>
     html, body {
@@ -87,7 +87,7 @@
 <body>
 
 <div id="wrapper">
-  <div id="titel-header">Ouderavond - Lokaalindeling</div>
+  <div id="titel-header">Ouderavond Leerjaar 2 & 3</div>
   
   <div id="tabel-container">
     <div class="tabel-rij tabel-header-rij">
@@ -181,13 +181,10 @@ function laadOuderavond() {
 // Automatische dynamische lettergrootte berekening
 function schaalTekstIn() {
   const container = document.getElementById("tabel-container");
-  
-  // Start lettergrootte relatief aan schermhoogte
   let fontSize = window.innerHeight * 0.035; 
 
   container.style.fontSize = fontSize + "px";
 
-  // Verlaag stapsgewijs tot alles exact binnen het scherm past
   while (container.scrollHeight > container.clientHeight && fontSize > 12) {
     fontSize -= 0.5;
     container.style.fontSize = fontSize + "px";
