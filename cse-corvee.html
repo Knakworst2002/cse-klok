@@ -20,21 +20,37 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       overflow: hidden;
+    }
+
+    #datum-boven {
+      color: #0fb6ff;
+      font-size: 4.2vh;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.3vh;
+    }
+
+    #titel {
+      color: #0fb6ff;
+      font-size: 2.2vh;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 1vh;
     }
 
     #klassen {
       display: flex;
       flex-direction: column;
-      gap: 1vh;
+      gap: 0.4vh;
     }
 
     .klas {
       color: #000000;
-      font-size: 3.8vh;
+      font-size: 3.2vh;
       font-weight: 600;
-      padding: 0.4em 0.5em;
+      padding: 0.25em 0.5em;
       border-bottom: 1px solid rgba(0,0,0,0.15);
       display: flex;
       justify-content: space-between;
@@ -54,6 +70,8 @@
 <body>
 
 <div id="wrapper">
+  <div id="datum-boven">--</div>
+  <div id="titel">--</div>
   <div id="klassen"></div>
 </div>
 
@@ -101,16 +119,13 @@ function getDatum() {
   const params = new URLSearchParams(window.location.search);
   let datum = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Amsterdam" }));
 
-  // Handmatige datum override voor testen
-  const override = params.get("datum");
-  if (override) return new Date(override + "T00:00:00");
-
   // Check of de slide 'Morgen' moet tonen via URL parameter ?morgen=true
-  if (params.get("morgen") === "true") {
+  const isMorgen = params.get("morgen") === "true";
+  if (isMorgen) {
     datum.setDate(datum.getDate() + 1);
   }
 
-  return datum;
+  return { datum, isMorgen };
 }
 
 function berekenSchooldagenVanafStart(doelDatum) {
@@ -131,13 +146,21 @@ function berekenSchooldagenVanafStart(doelDatum) {
   return teller;
 }
 
+function formatteerDatum(datum) {
+  return new Intl.DateTimeFormat("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+  }).format(datum);
+}
+
 function update() {
-  const datum = getDatum();
+  const { datum, isMorgen } = getDatum();
   let dag = datum.getDay();
 
-  // Weekend afhandeling: schuif door naar maandag
-  if (dag === 6) datum.setDate(datum.getDate() + 2);
-  if (dag === 0) datum.setDate(datum.getDate() + 1);
+  // Weekend afhandeling: als 'morgen' in het weekend valt, schuif naar maandag
+  if (dag === 6) datum.setDate(datum.getDate() + 2); // Zaterdag -> Maandag
+  if (dag === 0) datum.setDate(datum.getDate() + 1); // Zondag -> Maandag
 
   const schooldagenGeweest = berekenSchooldagenVanafStart(datum);
   
@@ -148,6 +171,13 @@ function update() {
     const index = (startIndex + i) % platteLijst.length;
     dagSelectie.push(platteLijst[index]);
   }
+
+  // Koptekst aanpassen op basis van Vandaag of Morgen
+  const prefix = isMorgen ? "Morgen, " : "Vandaag, ";
+  document.getElementById("datum-boven").textContent = prefix + formatteerDatum(datum);
+  document.getElementById("titel").textContent = isMorgen 
+    ? "De volgende leerlingen hebben morgen corvee:" 
+    : "De volgende leerlingen hebben vandaag corvee:";
 
   const container = document.getElementById("klassen");
   container.innerHTML = "";
