@@ -7,8 +7,8 @@
     html, body {
       margin: 0;
       padding: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       background: #ffffff;
       font-family: 'Segoe UI', Arial, sans-serif;
       overflow: hidden;
@@ -18,10 +18,10 @@
     #wrapper {
       width: 100%;
       height: 100%;
-      padding: 2vh 3vw;
+      padding: 2vh 2vw;
       box-sizing: border-box;
       display: flex;
-      gap: 3vw;
+      gap: 2vw;
     }
 
     .kolom {
@@ -29,15 +29,19 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      min-width: 0; /* Zorgt dat tekst netjes afbreekt/schaalt binnen de kolom */
     }
 
     .titel {
       color: #0fb6ff;
-      font-size: 3.5vh;
+      font-size: clamp(1.2rem, 3.2vh, 2.5rem);
       font-weight: 800;
       padding: 0.5vh 0;
       margin-bottom: 1vh;
       border-bottom: 3px solid #0fb6ff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .tabel-container {
@@ -49,6 +53,7 @@
       width: 100%;
       border-collapse: collapse;
       color: #000000;
+      table-layout: fixed; /* Zorgt dat kolommen netjes verdeeld blijven */
     }
 
     th {
@@ -56,14 +61,23 @@
       font-weight: 700;
       color: #0fb6ff;
       border-bottom: 2px solid #0fb6ff;
-      padding: 1vh 0.5vw;
+      padding: 0.8vh 0.4vw;
     }
 
     td {
-      padding: 1.2vh 0.5vw;
+      padding: 1vh 0.4vw;
       border-bottom: 1px solid rgba(15, 182, 255, 0.25);
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+
+    /* Kolombreedtes vastleggen voor strakke uitlijning */
+    .col-tijd { width: 22%; }
+    .col-lijn { width: 18%; }
+    .col-bestemming { width: 60%; }
+    .col-spoor { width: 18%; }
 
     .vertraagd {
       color: #ff5050;
@@ -73,6 +87,7 @@
     .buiten-dienst {
       color: #777;
       font-style: italic;
+      white-space: normal;
     }
   </style>
 </head>
@@ -84,9 +99,9 @@
         <table>
           <thead>
             <tr>
-              <th>Tijd</th>
-              <th>Bestemming</th>
-              <th>Spoor</th>
+              <th class="col-tijd">Tijd</th>
+              <th class="col-bestemming">Bestemming</th>
+              <th class="col-spoor">Spoor</th>
             </tr>
           </thead>
           <tbody id="rijen-trein">
@@ -102,9 +117,9 @@
         <table>
           <thead>
             <tr>
-              <th>Tijd</th>
-              <th>Lijn</th>
-              <th>Bestemming</th>
+              <th class="col-tijd">Tijd</th>
+              <th class="col-lijn">Lijn</th>
+              <th class="col-bestemming">Bestemming</th>
             </tr>
           </thead>
           <tbody id="rijen-bus">
@@ -116,7 +131,8 @@
   </div>
 
   <script>
-    const MAX = 7;
+    let treinData = null;
+    let busData = null;
 
     function isBinnenBedrijfstijd() {
       const nu = new Date();
@@ -125,130 +141,147 @@
       return (dag >= 1 && dag <= 5) && (uur >= 8 && uur < 17);
     }
 
-    // --- Treinen uit trein.json (gefilterd op huidige tijd) ---
-    async function updateTrein() {
-      const rijen = document.getElementById('rijen-trein');
+    // Volledig dynamische berekening van het aantal rijen op basis van schermhoogte
+    function berekenAantalRijen() {
+      const container = document.getElementById('container-trein');
+      const containerHoogte = container.clientHeight;
+      
+      // Dynamische schaling van de rijhoogte
+      const rijHoogte = Math.max(35, window.innerHeight * 0.052); 
+      const thHoogte = Math.max(30, window.innerHeight * 0.045);
 
+      const beschikbareRuimte = containerHoogte - thHoogte;
+      const aantal = Math.floor(beschikbareRuimte / rijHoogte);
+      
+      return Math.max(3, aantal);
+    }
+
+    async function haalDataOp() {
       if (!isBinnenBedrijfstijd()) {
-        rijen.innerHTML = '<tr><td colspan="3" class="buiten-dienst">Vertrektijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
+        toonBuitenDienst();
         return;
       }
 
       try {
-        const res = await fetch('./trein.json?t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        
-        const departures = (data.payload && data.payload.departures) || data.departures || data;
-        rijen.innerHTML = '';
+        const [resTrein, resBus] = await Promise.all([
+          fetch('./trein.json?t=' + Date.now(), { cache: 'no-store' }),
+          fetch('./bus.json?t=' + Date.now(), { cache: 'no-store' })
+        ]);
 
-        if (!Array.isArray(departures) || departures.length === 0) {
-          rijen.innerHTML = '<tr><td colspan="3">Geen actuele vertrektijden gevonden</td></tr>';
-          return;
+        if (resTrein.ok) {
+          const raw = await resTrein.json();
+          treinData = (raw.payload && raw.payload.departures) || raw.departures || raw;
         }
 
-        const nu = new Date();
+        if (resBus.ok) {
+          const raw = await resBus.json();
+          busData = raw.departures || raw;
+        }
 
-        // Filter treinen die nog moeten vertrekken (vertrektijd >= nu)
-        const komendeTreinen = departures.filter(v => {
+        renderTafels();
+      } catch (e) {
+        console.error("Fout bij ophalen data:", e);
+      }
+    }
+
+    function toonBuitenDienst() {
+      const msg = '<tr><td colspan="3" class="buiten-dienst">Vertrektijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
+      document.getElementById('rijen-trein').innerHTML = msg;
+      document.getElementById('rijen-bus').innerHTML = msg;
+    }
+
+    function renderTafels() {
+      if (!isBinnenBedrijfstijd()) return;
+
+      const maxRijen = berekenAantalRijen();
+      schaalTekstIn();
+
+      // --- Treinen ---
+      const rijenTrein = document.getElementById('rijen-trein');
+      rijenTrein.innerHTML = '';
+
+      if (Array.isArray(treinData) && treinData.length > 0) {
+        const nu = new Date();
+        const komendeTreinen = treinData.filter(v => {
           const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
           const actualStr = v.actualDateTime || v.actualDepartureTime;
-          const vertrekTijd = new Date(actualStr || plannedStr);
-          return vertrekTijd >= nu;
+          return new Date(actualStr || plannedStr) >= nu;
         });
 
-        const teTonenTreinen = komendeTreinen.length > 0 ? komendeTreinen : departures;
+        const bron = komendeTreinen.length > 0 ? komendeTreinen : treinData;
 
-        teTonenTreinen.slice(0, MAX).forEach(v => {
+        bron.slice(0, maxRijen).forEach(v => {
           const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
           const actualStr = v.actualDateTime || v.actualDepartureTime;
-
           const tijd = new Date(actualStr || plannedStr);
           const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
           const vertraagd = actualStr && actualStr !== plannedStr;
-
           const bestemming = v.direction || v.destination || '-';
           const spoor = v.actualTrack || (v.plannedTrackInfo && v.plannedTrackInfo.actualTrack) || v.plannedTrack || '-';
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="${vertraagd ? 'vertraagd' : ''}">${tijdStr}</td>
-            <td>${bestemming}</td>
-            <td>${spoor}</td>
+            <td class="col-tijd ${vertraagd ? 'vertraagd' : ''}">${tijdStr}</td>
+            <td class="col-bestemming" title="${bestemming}">${bestemming}</td>
+            <td class="col-spoor">${spoor}</td>
           `;
-          rijen.appendChild(tr);
+          rijenTrein.appendChild(tr);
         });
-      } catch (e) {
-        rijen.innerHTML = '<tr><td colspan="3">Kan treintijden niet ophalen</td></tr>';
+      } else {
+        rijenTrein.innerHTML = '<tr><td colspan="3">Geen actuele vertrektijden gevonden</td></tr>';
       }
-      schaalTekstIn();
-    }
 
-    // --- Bussen uit bus.json ---
-    function volgendeVertrekken(departures, aantal) {
-      const nu = new Date();
-      const nuStr = nu.toTimeString().slice(0, 8);
-      const komend = departures.filter(d => d.departure_time >= nuStr);
-      const bron = komend.length ? komend : departures;
+      // --- Bussen ---
+      const rijenBus = document.getElementById('rijen-bus');
+      rijenBus.innerHTML = '';
 
-      const gezien = new Set();
-      const uniek = [];
-      for (const d of bron) {
-        const sleutel = d.departure_time + '|' + d.line + '|' + d.destination;
-        if (!gezien.has(sleutel)) {
-          gezien.add(sleutel);
-          uniek.push(d);
+      if (Array.isArray(busData) && busData.length > 0) {
+        const nuStr = new Date().toTimeString().slice(0, 8);
+        const komend = busData.filter(d => d.departure_time >= nuStr);
+        const bron = komend.length ? komend : busData;
+
+        const gezien = new Set();
+        const uniek = [];
+        for (const d of bron) {
+          const sleutel = d.departure_time + '|' + d.line + '|' + d.destination;
+          if (!gezien.has(sleutel)) {
+            gezien.add(sleutel);
+            uniek.push(d);
+          }
         }
-      }
-      return uniek.slice(0, aantal);
-    }
 
-    async function updateBus() {
-      const rijen = document.getElementById('rijen-bus');
-
-      if (!isBinnenBedrijfstijd()) {
-        rijen.innerHTML = '<tr><td colspan="3" class="buiten-dienst">Bustijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
-        return;
-      }
-
-      try {
-        const res = await fetch('./bus.json?t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        rijen.innerHTML = '';
-
-        const eerstvolgende = volgendeVertrekken(data.departures, MAX);
-        eerstvolgende.forEach(b => {
+        uniek.slice(0, maxRijen).forEach(b => {
           const tijdStr = b.departure_time.slice(0, 5);
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${tijdStr}</td>
-            <td>${b.line}</td>
-            <td>${b.destination}</td>
+            <td class="col-tijd">${tijdStr}</td>
+            <td class="col-lijn">${b.line}</td>
+            <td class="col-bestemming" title="${b.destination}">${b.destination}</td>
           `;
-          rijen.appendChild(tr);
+          rijenBus.appendChild(tr);
         });
-      } catch (e) {
-        rijen.innerHTML = '<tr><td colspan="3">Kan bustijden niet ophalen</td></tr>';
+      } else {
+        rijenBus.innerHTML = '<tr><td colspan="3">Kan bustijden niet ophalen</td></tr>';
       }
-      schaalTekstIn();
     }
 
+    // Dynamische lettergrootte op basis van hoogte én breedte van het venster
     function schaalTekstIn() {
       const tafels = document.querySelectorAll('table');
-      let fontSize = window.innerHeight * 0.028;
+      const berekendeGrootte = Math.min(window.innerHeight * 0.027, window.innerWidth * 0.015);
+      const fontSize = Math.max(14, berekendeGrootte); // Minimaal 14px voor leesbaarheid
+      
       tafels.forEach(tafel => {
         tafel.style.fontSize = fontSize + 'px';
       });
     }
 
-    updateTrein();
-    updateBus();
+    // Starten & interval
+    haalDataOp();
+    setInterval(haalDataOp, 60 * 1000);
 
-    setInterval(updateTrein, 60 * 1000);
-    setInterval(updateBus, 60 * 1000);
-
-    window.addEventListener('resize', schaalTekstIn);
+    // Dynamisch herberekend zodra het venster van formaat verandert
+    window.addEventListener('resize', renderTafels);
   </script>
 </body>
 </html>
