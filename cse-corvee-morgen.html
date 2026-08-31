@@ -26,8 +26,8 @@
 
     #datum-boven {
       color: #0fb6ff;
-      font-size: 2.2vh;
-      font-weight: 600;
+      font-size: 4.2vh;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.02em;
       margin-bottom: 0.3vh;
@@ -35,8 +35,8 @@
 
     #titel {
       color: #0fb6ff;
-      font-size: 4.2vh;
-      font-weight: 800;
+      font-size: 2.2vh;
+      font-weight: 600;
       letter-spacing: 0.02em;
       margin-bottom: 1vh;
     }
@@ -66,13 +66,6 @@
 </div>
 
 <script>
-  // Corvee-indeling:
-  // Maandag: 6V, 5V, 5Hb, 5Ha, 4V
-  // Dinsdag: 4Hb, 4Ha, 4TL, 4BK, 3V
-  // Woensdag: 3Hb, 3Ha, 3TLb, 3TLa, 3BK
-  // Donderdag: 2V, 2Hb, 2Ha, 2TL, 2BK
-  // Vrijdag: 1HVb, 1Hva, 1THb, 1THa, 1BK
-
   const corvee = {
     1: ["6V", "5V", "5Hb", "5Ha", "4V"],
     2: ["4Hb", "4Ha", "4TL", "4BK", "3V"],
@@ -80,16 +73,6 @@
     4: ["2V", "2Hb", "2Ha", "2TL", "2BK"],
     5: ["1HVb", "1Hva", "1THb", "1THa", "1BK"]
   };
-
-  const namenWeekdagen = [
-    "zondag",
-    "maandag",
-    "dinsdag",
-    "woensdag",
-    "donderdag",
-    "vrijdag",
-    "zaterdag"
-  ];
 
   function getVandaag() {
     const params = new URLSearchParams(window.location.search);
@@ -109,12 +92,12 @@
   function volgendeSchooldag(datum) {
     datum.setDate(datum.getDate() + 1);
 
-    // Zaterdag -> maandag
+    // Zaterdag → maandag
     if (datum.getDay() === 6) {
       datum.setDate(datum.getDate() + 2);
     }
 
-    // Zondag -> maandag
+    // Zondag → maandag
     if (datum.getDay() === 0) {
       datum.setDate(datum.getDate() + 1);
     }
@@ -137,24 +120,16 @@
     document.getElementById("datum-boven").textContent =
       "Morgen, " + formatteerDatum(datum) + ", hebben corvee:";
 
-    const titel = document.getElementById("titel");
-    const container = document.getElementById("klassen");
+    document.getElementById("titel").textContent =
+      "De volgende klassen zijn aan de beurt:";
 
+    const container = document.getElementById("klassen");
     container.innerHTML = "";
 
     if (!corvee[dag]) {
-      titel.textContent = "Geen corvee";
+      document.getElementById("titel").textContent = "Geen corvee";
       return;
     }
-
-    titel.textContent =
-      "Klas " +
-      (dag === 1 ? "6 t/m 4" :
-       dag === 2 ? "4 t/m 3" :
-       dag === 3 ? "3" :
-       dag === 4 ? "2" :
-       "1") +
-      " is aan de beurt";
 
     corvee[dag].forEach(klas => {
       const div = document.createElement("div");
@@ -165,8 +140,6 @@
   }
 
   update();
-
-  // Elke 5 minuten controleren.
   setInterval(update, 5 * 60 * 1000);
 </script>
 
