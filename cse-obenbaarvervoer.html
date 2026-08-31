@@ -125,7 +125,7 @@
       return (dag >= 1 && dag <= 5) && (uur >= 8 && uur < 17);
     }
 
-    // --- Treinen uit departures.json ---
+    // --- Treinen uit trein.json ---
     async function updateTrein() {
       const rijen = document.getElementById('rijen-trein');
 
@@ -135,7 +135,7 @@
       }
 
       try {
-        const res = await fetch('./departures.json?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch('./trein.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         
@@ -172,7 +172,7 @@
       schaalTekstIn();
     }
 
-    // --- Bussen uit buses.json ---
+    // --- Bussen uit bus.json ---
     function volgendeVertrekken(departures, aantal) {
       const nu = new Date();
       const nuStr = nu.toTimeString().slice(0, 8);
@@ -200,7 +200,7 @@
       }
 
       try {
-        const res = await fetch('./buses.json?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch('./bus.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         rijen.innerHTML = '';
