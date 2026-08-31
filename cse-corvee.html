@@ -106,20 +106,21 @@ alleKlassen.forEach(k => {
 
 const START_DATUM = new Date("2026-08-31T00:00:00");
 
-function getDatum() {
+function getDatumDetails() {
   const params = new URLSearchParams(window.location.search);
   let datum = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Amsterdam" }));
 
-  // Handmatige datum override voor testen
   const override = params.get("datum");
-  if (override) return new Date(override + "T00:00:00");
+  if (override) {
+    return { datum: new Date(override + "T00:00:00"), isMorgen: params.get("morgen") === "true" };
+  }
 
-  // Check of de slide 'Morgen' moet tonen via URL parameter ?morgen=true
-  if (params.get("morgen") === "true") {
+  const isMorgen = params.get("morgen") === "true";
+  if (isMorgen) {
     datum.setDate(datum.getDate() + 1);
   }
 
-  return datum;
+  return { datum, isMorgen };
 }
 
 function berekenSchooldagenVanafStart(doelDatum) {
@@ -149,7 +150,7 @@ function formatteerDatum(datum) {
 }
 
 function update() {
-  const datum = getDatum();
+  const { datum, isMorgen } = getDatumDetails();
   let dag = datum.getDay();
 
   // Weekend afhandeling: schuif door naar maandag
@@ -166,8 +167,9 @@ function update() {
     dagSelectie.push(platteLijst[index]);
   }
 
-  // Toont nu expliciet dat het om Corvee gaat + de datum
-  document.getElementById("titel-header").textContent = "Corvee op " + formatteerDatum(datum);
+  // Toont "Corvee vandaag - [datum]" of "Corvee morgen - [datum]"
+  const label = isMorgen ? "Corvee morgen" : "Corvee vandaag";
+  document.getElementById("titel-header").textContent = label + " - " + formatteerDatum(datum);
 
   const container = document.getElementById("klassen");
   container.innerHTML = "";
