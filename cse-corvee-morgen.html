@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>CSE Corvee Morgen</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+  }
+  #wrapper {
+    padding: 2vw 3vw;
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  #titel {
+    color: #0fb6ff;
+    font-size: 3.2vw;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  #datum {
+    color: #000000;
+    font-size: 1.6vw;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-top: 0.8em;
+  }
+  table {
+    margin-top: 0.8em;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 2vw;
+  }
+  th {
+    text-align: left;
+    font-weight: 700;
+    color: #0fb6ff;
+    border-bottom: 2px solid #0fb6ff;
+    padding: 0.25em 0.5em;
+  }
+  td {
+    color: #000000;
+    padding: 0.3em 0.5em;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+  }
+</style>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="titel">--</div>
+    <table id="tabel">
+      <thead><tr><th>Klas</th><th>Collega</th><th>Lokaal</th></tr></thead>
+      <tbody id="rijen"></tbody>
+    </table>
+    <div id="datum">--</div>
+  </div>
+
+  <script>
+    // Eerstvolgende schooldag na vandaag: weekend wordt overgeslagen (vrijdag -> maandag)
+    function eerstvolgendeSchooldag() {
+      const params = new URLSearchParams(window.location.search);
+      const override = params.get('datum');
+      const nu = override
+        ? new Date(override + 'T00:00:00')
+        : new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+
+      nu.setDate(nu.getDate() + 1); // morgen
+
+      const weekdag = nu.getDay(); // 0 = zondag, 6 = zaterdag
+      if (weekdag === 6) nu.setDate(nu.getDate() + 2); // zaterdag -> maandag
+      if (weekdag === 0) nu.setDate(nu.getDate() + 1); // zondag -> maandag
+
+      return nu;
+    }
+
+    function naarSleutel(datumObj) {
+      const jaar = datumObj.getFullYear();
+      const maand = String(datumObj.getMonth() + 1).padStart(2, '0');
+      const dag = String(datumObj.getDate()).padStart(2, '0');
+      return `${jaar}-${maand}-${dag}`;
+    }
+
+    function updateDatum() {
+      const params = new URLSearchParams(window.location.search);
+      const override = params.get('datum');
+      const nu = override ? new Date(override + 'T00:00:00') : new Date();
+      const datumStr = new Intl.DateTimeFormat('nl-NL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        timeZone: override ? 'UTC' : 'Europe/Amsterdam'
+      }).format(nu);
+      document.getElementById('datum').textContent = 'Vandaag: ' + datumStr;
+    }
+
+    async function updateCorvee() {
+      try {
+        updateDatum();
+        const datumObj = eerstvolgendeSchooldag();
+        const sleutel = naarSleutel(datumObj);
+
+        const res = await fetch('./roster.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const dag = data[sleutel];
+
+        const titelEl = document.getElementById('titel');
+        const rijenEl = document.getElementById('rijen');
+        const tabelEl = document.getElementById('tabel');
+        rijenEl.innerHTML = '';
+
+        if (!dag || !dag.rows || dag.rows.length === 0) {
+          titelEl.textContent = 'Geen corvee ingepland voor morgen';
+          tabelEl.style.display = 'none';
+          return;
+        }
+
+        tabelEl.style.display = '';
+        titelEl.textContent = dag.header || '';
+
+        dag.rows.forEach(rij => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${rij.klas}</td>
+            <td>${rij.collega}</td>
+            <td>${rij.lokaal}</td>
+          `;
+          rijenEl.appendChild(tr);
+        });
+      } catch (e) {
+        document.getElementById('titel').textContent = 'Kan corvee-rooster niet ophalen';
+        document.getElementById('tabel').style.display = 'none';
+      }
+    }
+
+    updateCorvee();
+    setInterval(updateCorvee, 5 * 60 * 1000); // elke 5 min verversen
+  </script>
+</body>
+</html>
