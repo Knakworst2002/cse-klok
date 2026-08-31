@@ -113,10 +113,10 @@ const ouderavonden = {
       { klas: "2Ha", leraar: "Annemieke", lokaal: "5" },
       { klas: "2V", leraar: "Jasmijn", lokaal: "6" },
       { klas: "3BK", leraar: "Hans", lokaal: "9a" },
+      { klas: "3Hb", leraar: "Meyke", lokaal: "9b" },
       { klas: "3TLb", leraar: "Joleen", lokaal: "2" },
       { klas: "3TLa", leraar: "Rudi", lokaal: "3" },
       { klas: "3Ha", leraar: "Allard", lokaal: "8" },
-      { klas: "3Hb", leraar: "Meyke", lokaal: "9b" },
       { klas: "3V", leraar: "Mieke", lokaal: "12" }
     ]
   },
@@ -132,8 +132,12 @@ const ouderavonden = {
   }
 };
 
-function bepaalVerdieping(klas) {
-  if (klas.startsWith("1") || klas.startsWith("2")) {
+// Bepaal de verdieping op basis van klas- en lokaalnummer
+function bepaalVerdieping(item) {
+  const lokaal = item.lokaal.toString().toLowerCase().trim();
+  
+  // Lokalen 9a en 9b vallen op de Begane grond, net als klassen 1 & 2
+  if (lokaal === "9a" || lokaal === "9b" || item.klas.startsWith("1") || item.klas.startsWith("2")) {
     return "Begane grond";
   }
   return "1e Verdieping (Boven)";
@@ -149,10 +153,17 @@ function laadOuderavond() {
   const container = document.getElementById("data-rijen");
   container.innerHTML = "";
 
+  // Bepaal per item de verdieping
   const verwerkteData = actieveAvond.data.map(item => ({
     ...item,
-    verdieping: bepaalVerdieping(item.klas)
+    verdieping: bepaalVerdieping(item)
   }));
+
+  // Sorteer zo dat 'Begane grond' eerst komt en daarna '1e Verdieping'
+  verwerkteData.sort((a, b) => {
+    if (a.verdieping === b.verdieping) return 0;
+    return a.verdieping === "Begane grond" ? -1 : 1;
+  });
 
   let huidigeVerdieping = "";
 
