@@ -125,7 +125,7 @@
       return (dag >= 1 && dag <= 5) && (uur >= 8 && uur < 17);
     }
 
-    // --- Treinen uit trein.json ---
+    // --- Treinen uit trein.json (gefilterd op huidige tijd) ---
     async function updateTrein() {
       const rijen = document.getElementById('rijen-trein');
 
@@ -147,7 +147,19 @@
           return;
         }
 
-        departures.slice(0, MAX).forEach(v => {
+        const nu = new Date();
+
+        // Filter treinen die nog moeten vertrekken (vertrektijd >= nu)
+        const komendeTreinen = departures.filter(v => {
+          const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
+          const actualStr = v.actualDateTime || v.actualDepartureTime;
+          const vertrekTijd = new Date(actualStr || plannedStr);
+          return vertrekTijd >= nu;
+        });
+
+        const teTonenTreinen = komendeTreinen.length > 0 ? komendeTreinen : departures;
+
+        teTonenTreinen.slice(0, MAX).forEach(v => {
           const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
           const actualStr = v.actualDateTime || v.actualDepartureTime;
 
