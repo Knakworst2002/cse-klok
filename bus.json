@@ -353,13 +353,6 @@
       "destination": "Hessenpoort"
     },
     {
-      "trip_id": "374452712",
-      "departure_time": "08:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378010199",
       "departure_time": "08:32:00",
       "line": "3",
@@ -514,13 +507,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452714",
-      "departure_time": "09:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378010201",
       "departure_time": "09:02:00",
       "line": "3",
@@ -638,13 +624,6 @@
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Hessenpoort"
-    },
-    {
-      "trip_id": "374452716",
-      "departure_time": "09:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007260",
@@ -780,13 +759,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452718",
-      "departure_time": "10:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007262",
       "departure_time": "10:02:00",
       "line": "3",
@@ -883,13 +855,6 @@
       "line": "41",
       "route": "Zwartsluis - Zwolle",
       "destination": "Zwartsluis"
-    },
-    {
-      "trip_id": "374452720",
-      "departure_time": "10:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007264",
@@ -1025,13 +990,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452722",
-      "departure_time": "11:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007266",
       "departure_time": "11:02:00",
       "line": "3",
@@ -1128,13 +1086,6 @@
       "line": "41",
       "route": "Zwartsluis - Zwolle",
       "destination": "Zwartsluis"
-    },
-    {
-      "trip_id": "374452724",
-      "departure_time": "11:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007268",
@@ -1270,13 +1221,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452726",
-      "departure_time": "12:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007270",
       "departure_time": "12:02:00",
       "line": "3",
@@ -1373,13 +1317,6 @@
       "line": "41",
       "route": "Zwartsluis - Zwolle",
       "destination": "Zwartsluis"
-    },
-    {
-      "trip_id": "374452728",
-      "departure_time": "12:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007272",
@@ -1515,13 +1452,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452730",
-      "departure_time": "13:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007274",
       "departure_time": "13:02:00",
       "line": "3",
@@ -1618,13 +1548,6 @@
       "line": "41",
       "route": "Zwartsluis - Zwolle",
       "destination": "Zwartsluis"
-    },
-    {
-      "trip_id": "374452732",
-      "departure_time": "13:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007276",
@@ -1725,13 +1648,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452734",
-      "departure_time": "14:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007278",
       "departure_time": "14:02:00",
       "line": "3",
@@ -1828,13 +1744,6 @@
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Hessenpoort"
-    },
-    {
-      "trip_id": "374452736",
-      "departure_time": "14:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007280",
@@ -1970,13 +1879,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452738",
-      "departure_time": "15:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007282",
       "departure_time": "15:02:00",
       "line": "3",
@@ -2073,13 +1975,6 @@
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Hessenpoort"
-    },
-    {
-      "trip_id": "374452740",
-      "departure_time": "15:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007284",
@@ -2215,13 +2110,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452742",
-      "departure_time": "16:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007286",
       "departure_time": "16:02:00",
       "line": "3",
@@ -2318,13 +2206,6 @@
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Hessenpoort"
-    },
-    {
-      "trip_id": "374452744",
-      "departure_time": "16:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007288",
@@ -2460,13 +2341,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452746",
-      "departure_time": "17:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007290",
       "departure_time": "17:02:00",
       "line": "3",
@@ -2563,13 +2437,6 @@
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Hessenpoort"
-    },
-    {
-      "trip_id": "374452748",
-      "departure_time": "17:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007292",
@@ -2705,13 +2572,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452750",
-      "departure_time": "18:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007294",
       "departure_time": "18:02:00",
       "line": "3",
@@ -2808,13 +2668,6 @@
       "line": "41",
       "route": "Zwartsluis - Zwolle",
       "destination": "Zwartsluis"
-    },
-    {
-      "trip_id": "374452752",
-      "departure_time": "18:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007296",
@@ -2950,13 +2803,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452754",
-      "departure_time": "19:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007298",
       "departure_time": "19:02:00",
       "line": "3",
@@ -3018,13 +2864,6 @@
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Hessenpoort"
-    },
-    {
-      "trip_id": "374452756",
-      "departure_time": "19:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007300",
@@ -3160,13 +2999,6 @@
       "destination": "Zwolle Hessenpoort"
     },
     {
-      "trip_id": "374452758",
-      "departure_time": "20:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007302",
       "departure_time": "20:02:00",
       "line": "3",
@@ -3228,13 +3060,6 @@
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Hessenpoort"
-    },
-    {
-      "trip_id": "374452760",
-      "departure_time": "20:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
     },
     {
       "trip_id": "378007304",
@@ -3300,13 +3125,6 @@
       "destination": "Hessenpoort"
     },
     {
-      "trip_id": "374452762",
-      "departure_time": "21:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007306",
       "departure_time": "21:02:00",
       "line": "3",
@@ -3365,13 +3183,6 @@
     {
       "trip_id": "378044413",
       "departure_time": "21:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
-      "trip_id": "374452764",
-      "departure_time": "21:32:00",
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Berkum"
@@ -3440,13 +3251,6 @@
       "destination": "Berkum"
     },
     {
-      "trip_id": "374452766",
-      "departure_time": "22:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007310",
       "departure_time": "22:02:00",
       "line": "3",
@@ -3505,13 +3309,6 @@
     {
       "trip_id": "378044417",
       "departure_time": "22:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
-      "trip_id": "374452768",
-      "departure_time": "22:32:00",
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Berkum"
@@ -3580,13 +3377,6 @@
       "destination": "Berkum"
     },
     {
-      "trip_id": "374452770",
-      "departure_time": "23:02:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007314",
       "departure_time": "23:02:00",
       "line": "3",
@@ -3650,13 +3440,6 @@
       "destination": "Berkum"
     },
     {
-      "trip_id": "374452772",
-      "departure_time": "23:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
       "trip_id": "378007316",
       "departure_time": "23:32:00",
       "line": "3",
@@ -3715,13 +3498,6 @@
     {
       "trip_id": "378044423",
       "departure_time": "23:32:00",
-      "line": "3",
-      "route": "Hessenpoort - Station",
-      "destination": "Berkum"
-    },
-    {
-      "trip_id": "374452773",
-      "departure_time": "24:02:00",
       "line": "3",
       "route": "Hessenpoort - Station",
       "destination": "Berkum"
