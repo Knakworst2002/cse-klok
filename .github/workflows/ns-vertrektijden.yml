@@ -21,7 +21,7 @@ jobs:
           python-version: "3.12"
 
       - name: Dependencies installeren
-        run: pip install requests dnspython
+        run: pip install requests
 
       - name: Treingegevens ophalen van NS API
         env:
@@ -29,10 +29,8 @@ jobs:
         run: |
           python - <<'PY'
           import requests
-          import dns.resolver
           import os
           import json
-          import time
 
           api_key = os.environ.get("NS_API_KEY", "").strip()
 
@@ -40,65 +38,32 @@ jobs:
               print("ERROR: Secret 'NS_API_KEY' ontbreekt in GitHub Repository Settings!")
               exit(1)
 
-          hostname = "gateway.api.ns.nl"
-          
-          # Haal IP-adres op via externe DNS resolvers
-          target_ip = None
-          resolvers = ['1.1.1.1', '8.8.8.8', '9.9.9.9']
-          
-          for dns_ip in resolvers:
-              try:
-                  res = dns.resolver.Resolver()
-                  res.nameservers = [dns_ip]
-                  answers = res.resolve(hostname, 'A')
-                  target_ip = answers[0].to_text()
-                  print(f"IP-adres gevonden via DNS {dns_ip}: {target_ip}")
-                  break
-              except Exception as e:
-                  print(f"Resolver {dns_ip} mislukt: {e}")
-
-          if not target_ip:
-              print("ERROR: Kan IP-adres van NS API niet achterhalen.")
-              exit(1)
-
-          # Verbinding maken op het directe IP met de correcte Host header
-          url = f"https://{target_ip}/reisinformatie-api/api/v2/departures"
+          # Juiste domeinnaam voor de NS API
+          url = "https://api.ns.nl/reisinformatie-api/api/v2/departures"
           params = {
               "station": "ZL",
               "maxJourneys": "30"
           }
           headers = {
-              "Host": hostname,
               "Ocp-Apim-Subscription-Key": api_key,
               "User-Agent": "Mozilla/5.0"
           }
 
-          success = False
-          for poging in range(1, 4):
-              try:
-                  print(f"Poging {poging} om te verbinden met {url}...")
-                  # verify=False is nodig omdat het SSL-certificaat is uitgeschreven voor de domeinnaam, niet het IP
-                  response = requests.get(url, headers=headers, params=params, verify=False, timeout=15)
-                  
-                  if response.status_code == 200:
-                      data = response.json()
-                      with open("trein.json", "w", encoding="utf-8") as f:
-                          json.dump(data, f, ensure_ascii=False, indent=2)
-                      print("Treingegevens succesvol vernieuwd!")
-                      success = True
-                      break
-                  else:
-                      print(f"HTTP Fout {response.status_code}: {response.text}")
-                      if response.status_code in [401, 403]:
-                          print("API key geweigerd door NS. Controleer je NS_API_KEY secret.")
-                          exit(1)
-              except Exception as e:
-                  print(f"Fout bij poging {poging}: {e}")
+          try:
+              response = requests.get(url, headers=headers, params=params, timeout=15)
               
-              time.sleep(2)
-
-          if not success:
-              print("ERROR: NS API niet bereikbaar via IP.")
+              if response.status_code == 200:
+                  data = response.json()
+                  with open("trein.json", "w", encoding="utf-8") as f:
+                      json.dump(data, f, ensure_ascii=False, indent=2)
+                  print("Treingegevens succesvol vernieuwd!")
+              else:
+                  print(f"HTTP Fout {response.status_code}: {response.text}")
+                  if response.status_code in [401, 403]:
+                      print("API key geweigerd. Controleer of de sleutel klopt in GitHub Secrets.")
+                  exit(1)
+          except Exception as e:
+              print(f"Fout tijdens ophalen: {e}")
               exit(1)
           PY
 
