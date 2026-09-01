@@ -15,11 +15,6 @@ jobs:
       - name: Repository ophalen
         uses: actions/checkout@v4.2.2
 
-      - name: DNS instellen op Google DNS
-        run: |
-          sudo sed -i '1s/^/nameserver 8.8.8.8\n/' /etc/resolv.conf
-          cat /etc/resolv.conf
-
       - name: Python instellen
         uses: actions/setup-python@v5.4.0
         with:
@@ -33,10 +28,18 @@ jobs:
           NS_API_KEY: ${{ secrets.NS_API_KEY }}
         run: |
           python - <<'PY'
+          import urllib3.util.connection as urllib3_cn
+          import socket
           import requests
           import os
           import json
           import time
+
+          # Dwing urllib3/requests af om uitsluitend IPv4 te gebruiken
+          def allowed_gai_family():
+              return socket.AF_INET
+
+          urllib3_cn.allowed_gai_family = allowed_gai_family
 
           api_key = os.environ.get("NS_API_KEY", "").strip()
 
@@ -44,7 +47,6 @@ jobs:
               print("ERROR: Secret 'NS_API_KEY' ontbreekt in GitHub Repository Settings!")
               exit(1)
 
-          # Officiële NS API endpoint
           url = "https://gateway.api.ns.nl/reisinformatie-api/api/v2/departures"
           params = {
               "station": "ZL",
@@ -58,7 +60,7 @@ jobs:
           success = False
           for poging in range(1, 4):
               try:
-                  print(f"Poging {poging} om verbinding te maken...")
+                  print(f"Poging {poging} om verbinding te maken via IPv4...")
                   response = requests.get(url, headers=headers, params=params, timeout=15)
                   
                   if response.status_code == 200:
@@ -86,8 +88,7 @@ jobs:
       - name: trein.json opslaan
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
+          git config user.email "41898282+github-actions[bot]"
           git add trein.json
           git commit -m "Update trein.json [skip ci]" || echo "Geen wijzigingen"
           git push
