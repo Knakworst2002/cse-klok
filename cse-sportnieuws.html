@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>CSE Sportnieuws Slide</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    #wrapper {
+      width: 100%;
+      height: 100%;
+      padding: 4vh 4vw;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3vh;
+      border-bottom: 4px solid #0fb6ff;
+      padding-bottom: 1vh;
+    }
+
+    .titel {
+      color: #0fb6ff;
+      font-size: clamp(2rem, 5vh, 3.5rem);
+      font-weight: 800;
+      margin: 0;
+    }
+
+    #klok {
+      color: #0fb6ff;
+      font-size: clamp(2rem, 5vh, 3.5rem);
+      font-weight: 700;
+    }
+
+    .slide-card {
+      flex: 1;
+      background: #f4faff;
+      border-radius: 12px;
+      border-left: 8px solid #0fb6ff;
+      padding: 4vh 4vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .nieuws-titel {
+      font-size: clamp(1.8rem, 4.5vh, 3rem);
+      font-weight: 700;
+      color: #111111;
+      margin-bottom: 2vh;
+      line-height: 1.2;
+    }
+
+    .nieuws-beschrijving {
+      font-size: clamp(1.2rem, 3vh, 2rem);
+      color: #444444;
+      line-height: 1.4;
+    }
+
+    .fade-out {
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="wrapper">
+    <div class="header-container">
+      <h1 class="titel">⚽ Sportnieuws</h1>
+      <div id="klok">--:--</div>
+    </div>
+    
+    <div class="slide-card" id="nieuws-card">
+      <div class="nieuws-titel" id="nieuws-titel">Sportnieuws laden...</div>
+      <div class="nieuws-beschrijving" id="nieuws-beschrijving">Een ogenblik geduld alstublieft.</div>
+    </div>
+  </div>
+
+  <script>
+    // --- KLOK ---
+    function updateKlok() {
+      const nu = new Date();
+      document.getElementById('klok').textContent = new Intl.DateTimeFormat('nl-NL', {
+        hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Amsterdam'
+      }).format(nu);
+    }
+    updateKlok();
+    setInterval(updateKlok, 1000);
+
+    // --- SPORTNIEUWS ---
+    let artikelen = [];
+    let huidigeIndex = 0;
+
+    async function haalSportNieuwsOp() {
+      // Gebruik RSS2JSON om de gratis NOS Sport RSS-feed om te zetten naar JSON
+      const rssUrl = encodeURIComponent('https://feeds.feedburner.com/nossportalgemeen');
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
+
+      try {
+        const res = await fetch(apiUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            artikelen = data.items;
+            toonArtikel(0);
+          }
+        }
+      } catch (e) {
+        console.error("Fout bij laden sportnieuws:", e);
+      }
+    }
+
+    function toonArtikel(index) {
+      if (artikelen.length === 0) return;
+
+      const card = document.getElementById('nieuws-card');
+      const titelEl = document.getElementById('nieuws-titel');
+      const descEl = document.getElementById('nieuws-beschrijving');
+
+      // Animatie effect
+      card.classList.add('fade-out');
+
+      setTimeout(() => {
+        const item = artikelen[index];
+        titelEl.textContent = item.title;
+        
+        // HTML tags uit de beschrijving strippen voor een schone weergave
+        const schoneBeschrijving = item.description.replace(/<[^>]*>?/gm, '');
+        descEl.textContent = schoneBeschrijving;
+
+        card.classList.remove('fade-out');
+      }, 500);
+    }
+
+    function volgendeSlide() {
+      if (artikelen.length > 0) {
+        huidigeIndex = (huidigeIndex + 1) % artikelen.length;
+        toonArtikel(huidigeIndex);
+      }
+    }
+
+    // Starten & Intervals
+    haalSportNieuwsOp();
+    setInterval(volgendeSlide, 10000); // Elke 10 seconden een nieuw bericht
+    setInterval(haalSportNieuwsOp, 15 * 60 * 1000); // Elke 15 minuten de feed verversen
+  </script>
+</body>
+</html>
