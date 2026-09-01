@@ -25,14 +25,10 @@
   #weer {
     display: flex;
     align-items: center;
-    gap: 0.5em;
+    justify-content: center;
     color: #0fb6ff;
     font-family: 'Segoe UI', Arial, sans-serif;
     font-weight: 700;
-  }
-  #weer-icoon {
-    font-size: 8vw;
-    line-height: 1;
   }
   #weer-temp {
     font-size: 6vw;
@@ -42,34 +38,20 @@
 <body>
   <div id="wrapper" style="display:flex; flex-direction:column; align-items:center;">
     <div id="weer">
-      <span id="weer-icoon">--</span>
       <span id="weer-temp">--°C</span>
     </div>
     <div id="plaats">Zwolle</div>
   </div>
   <script>
     // Weer ophalen voor Zwolle via Open-Meteo (gratis, geen API-key nodig)
-    const WEERCODE_ICOON = {
-      0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
-      45: '🌫️', 48: '🌫️',
-      51: '🌦️', 53: '🌦️', 55: '🌦️',
-      61: '🌧️', 63: '🌧️', 65: '🌧️',
-      71: '🌨️', 73: '🌨️', 75: '🌨️',
-      80: '🌦️', 81: '🌧️', 82: '🌧️',
-      95: '⛈️', 96: '⛈️', 99: '⛈️'
-    };
-
     async function updateWeer() {
       try {
         const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.5168&longitude=6.0830&current_weather=true&timezone=Europe%2FAmsterdam');
         const data = await res.json();
         const temp = Math.round(data.current_weather.temperature);
-        const code = data.current_weather.weathercode;
         document.getElementById('weer-temp').textContent = temp + '°C';
-        document.getElementById('weer-icoon').textContent = WEERCODE_ICOON[code] || '🌡️';
       } catch (e) {
         document.getElementById('weer-temp').textContent = '';
-        document.getElementById('weer-icoon').textContent = '';
       }
     }
     updateWeer();
