@@ -1,136 +1,74 @@
 name: Bus vertrektijden ophalen
 
 on:
-  workflow_dispatch:
   schedule:
-    # Draait van ma t/m vr om de 15 minuten tussen 08:00 en 17:00 NL tijd (06:00-15:00 UTC)
-    - cron: "*/15 6-15 * * 1-5"
+    - cron: "*/5 6-15 * * 1-5"
+  workflow_dispatch:
 
 jobs:
   update:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
     steps:
       - name: Repository ophalen
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Python instellen
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.12"
 
-      - name: GTFS downloaden
-        run: |
-          curl -L "https://gtfs.ovapi.nl/nl/gtfs-nl.zip" -o gtfs.zip
+      - name: Dependencies installeren
+        run: pip install requests
 
-      - name: Busgegevens maken
+      - name: Bustijden ophalen via NDOV API
         run: |
           python - <<'PY'
-          import zipfile
-          import csv
+          import requests
           import json
+          from datetime import datetime
 
-          z = zipfile.ZipFile("gtfs.zip")
+          # Haltecode voor Zwolle, Stadionplein
+          HALTE_CODE = "NL:S:zwostp"
+          url = f"https://api.v2.ndovloket.nl/departures/stoparea/{HALTE_CODE}"
 
-          # Halte zoeken
-          stop_id = None
-          stop_name = None
+          try:
+              response = requests.get(url, timeout=15)
+              if response.status_code == 200:
+                  raw_data = response.json()
+                  
+                  vertrekken = []
+                  # Verwerk de binnenkomende NDOV data
+                  for item in raw_data.get("departures", raw_data if isinstance(raw_data, list) else []):
+                      tijd_str = item.get("expected_departure_time") or item.get("departure_time") or item.get("planned_departure_time")
+                      lijn = str(item.get("line_number") or item.get("line") or "")
+                      bestemming = item.get("destination") or item.get("target_name") or ""
 
-          with z.open("stops.txt") as f:
-              rows = csv.DictReader(
-                  line.decode("utf-8-sig")
-                  for line in f
-              )
+                      if tijd_str and lijn and bestemming:
+                          # Format de tijd naar HH:MM:SS
+                          if "T" in tijd_str:
+                              tijd_formatted = tijd_str.split("T")[1][:8]
+                          else:
+                              tijd_formatted = tijd_str[:8]
 
-              for row in rows:
-                  naam = row.get("stop_name", "").lower()
+                          vertrekken.append({
+                              "departure_time": tijd_formatted,
+                              "line": lijn,
+                              "destination": bestemming
+                          })
 
-                  if "stadion" in naam and "zwolle" in naam:
-                      stop_id = row["stop_id"]
-                      stop_name = row["stop_name"]
-                      break
+                  # Sorteer op vertrektijd
+                  vertrekken.sort(key=lambda x: x["departure_time"])
 
-          if not stop_id:
-              raise Exception("Zwolle, Stadion niet gevonden")
-
-          print("HALTE:", stop_id, stop_name)
-
-          # Routes
-          routes = {}
-          with z.open("routes.txt") as f:
-              rows = csv.DictReader(
-                  line.decode("utf-8-sig")
-                  for line in f
-              )
-
-              for row in rows:
-                  routes[row["route_id"]] = {
-                      "line": row.get("route_short_name", ""),
-                      "route": row.get("route_long_name", "")
-                  }
-
-          # Trips
-          trips = {}
-          with z.open("trips.txt") as f:
-              rows = csv.DictReader(
-                  line.decode("utf-8-sig")
-                  for line in f
-              )
-
-              for row in rows:
-                  trips[row["trip_id"]] = {
-                      "route_id": row.get("route_id", ""),
-                      "destination": row.get("trip_headsign", "")
-                  }
-
-          # Vertrektijden
-          departures = []
-          with z.open("stop_times.txt") as f:
-              rows = csv.DictReader(
-                  line.decode("utf-8-sig")
-                  for line in f
-              )
-
-              for row in rows:
-                  if row.get("stop_id") != stop_id:
-                      continue
-
-                  trip_id = row.get("trip_id", "")
-                  trip = trips.get(trip_id, {})
-                  route_id = trip.get("route_id", "")
-                  route = routes.get(route_id, {})
-
-                  departures.append({
-                      "trip_id": trip_id,
-                      "departure_time": row.get("departure_time", ""),
-                      "line": route.get("line", ""),
-                      "route": route.get("route", ""),
-                      "destination": trip.get("destination", "")
-                  })
-
-          departures.sort(
-              key=lambda x: x["departure_time"]
-          )
-
-          data = {
-              "stop_id": stop_id,
-              "stop_name": stop_name,
-              "departures": departures
-          }
-
-          with open("bus.json", "w", encoding="utf-8") as f:
-              json.dump(
-                  data,
-                  f,
-                  ensure_ascii=False,
-                  indent=2
-              )
-
-          print("BUSRITTEN:", len(departures))
-
+                  with open("bus.json", "w", encoding="utf-8") as f:
+                      json.dump(vertrekken, f, ensure_ascii=False, indent=2)
+                  print(f"Succesvol {len(vertrekken)} busvertrekken opgeslagen in bus.json!")
+              else:
+                  print(f"HTTP Fout {response.status_code} bij ophalen bustijden.")
+          except Exception as e:
+              print(f"Fout bij ophalen busdata: {e}")
           PY
 
       - name: bus.json opslaan
@@ -139,5 +77,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add bus.json
-          git commit -m "Update bus vertrektijden" || echo "Geen wijzigingen"
+          git commit -m "Update bus.json [skip ci]" || echo "Geen wijzigingen"
           git push
