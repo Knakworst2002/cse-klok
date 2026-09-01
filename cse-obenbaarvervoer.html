@@ -29,7 +29,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-width: 0; /* Zorgt dat tekst netjes afbreekt/schaalt binnen de kolom */
+      min-width: 0;
     }
 
     .titel {
@@ -53,7 +53,7 @@
       width: 100%;
       border-collapse: collapse;
       color: #000000;
-      table-layout: fixed; /* Zorgt dat kolommen netjes verdeeld blijven */
+      table-layout: fixed;
     }
 
     th {
@@ -73,7 +73,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Kolombreedtes vastleggen voor strakke uitlijning */
     .col-tijd { width: 22%; }
     .col-lijn { width: 18%; }
     .col-bestemming { width: 60%; }
@@ -141,12 +140,10 @@
       return (dag >= 1 && dag <= 5) && (uur >= 8 && uur < 17);
     }
 
-    // Volledig dynamische berekening van het aantal rijen op basis van schermhoogte
     function berekenAantalRijen() {
       const container = document.getElementById('container-trein');
       const containerHoogte = container.clientHeight;
       
-      // Dynamische schaling van de rijhoogte
       const rijHoogte = Math.max(35, window.innerHeight * 0.052); 
       const thHoogte = Math.max(30, window.innerHeight * 0.045);
 
@@ -196,37 +193,46 @@
       const maxRijen = berekenAantalRijen();
       schaalTekstIn();
 
+      const nu = new Date();
+
       // --- Treinen ---
       const rijenTrein = document.getElementById('rijen-trein');
       rijenTrein.innerHTML = '';
 
       if (Array.isArray(treinData) && treinData.length > 0) {
-        const nu = new Date();
-        const komendeTreinen = treinData.filter(v => {
-          const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
-          const actualStr = v.actualDateTime || v.actualDepartureTime;
-          return new Date(actualStr || plannedStr) >= nu;
+        // Alleen treinen pakken van VANDAAG die niet langer dan 2 minuten geleden vertrokken zijn
+        const grensTijd = new Date(nu.getTime() - 2 * 60 * 1000);
+
+        const geldigeTreinen = treinData.filter(v => {
+          const vertrekIso = v.actualDateTime || v.plannedDateTime;
+          if (!vertrekIso) return false;
+          const vertrekDatum = new Date(vertrekIso);
+          return vertrekDatum >= grensTijd;
+        }).sort((a, b) => {
+          return new Date(a.actualDateTime || a.plannedDateTime) - new Date(b.actualDateTime || b.plannedDateTime);
         });
 
-        const bron = komendeTreinen.length > 0 ? komendeTreinen : treinData;
+        if (geldigeTreinen.length > 0) {
+          geldigeTreinen.slice(0, maxRijen).forEach(v => {
+            const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
+            const actualStr = v.actualDateTime || v.plannedDepartureTime;
+            const tijd = new Date(actualStr || plannedStr);
+            const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            const vertraagd = actualStr && plannedStr && (new Date(actualStr) > new Date(plannedStr));
+            const bestemming = v.direction || v.destination || '-';
+            const spoor = v.actualTrack || (v.plannedTrackInfo && v.plannedTrackInfo.actualTrack) || v.plannedTrack || '-';
 
-        bron.slice(0, maxRijen).forEach(v => {
-          const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
-          const actualStr = v.actualDateTime || v.actualDepartureTime;
-          const tijd = new Date(actualStr || plannedStr);
-          const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-          const vertraagd = actualStr && actualStr !== plannedStr;
-          const bestemming = v.direction || v.destination || '-';
-          const spoor = v.actualTrack || (v.plannedTrackInfo && v.plannedTrackInfo.actualTrack) || v.plannedTrack || '-';
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="col-tijd ${vertraagd ? 'vertraagd' : ''}">${tijdStr}</td>
-            <td class="col-bestemming" title="${bestemming}">${bestemming}</td>
-            <td class="col-spoor">${spoor}</td>
-          `;
-          rijenTrein.appendChild(tr);
-        });
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="col-tijd ${vertraagd ? 'vertraagd' : ''}">${tijdStr}</td>
+              <td class="col-bestemming" title="${bestemming}">${bestemming}</td>
+              <td class="col-spoor">${spoor}</td>
+            `;
+            rijenTrein.appendChild(tr);
+          });
+        } else {
+          rijenTrein.innerHTML = '<tr><td colspan="3">Treingegevens worden geladen...</td></tr>';
+        }
       } else {
         rijenTrein.innerHTML = '<tr><td colspan="3">Geen actuele vertrektijden gevonden</td></tr>';
       }
@@ -236,13 +242,16 @@
       rijenBus.innerHTML = '';
 
       if (Array.isArray(busData) && busData.length > 0) {
-        const nuStr = new Date().toTimeString().slice(0, 8);
-        const komend = busData.filter(d => d.departure_time >= nuStr);
-        const bron = komend.length ? komend : busData;
+        const uur = String(nu.getHours()).padStart(2, '0');
+        const min = String(nu.getMinutes()).padStart(2, '0');
+        const sec = String(nu.getSeconds()).padStart(2, '0');
+        const nuStr = `${uur}:${min}:${sec}`;
+
+        const komendeBussen = busData.filter(d => d.departure_time >= nuStr);
 
         const gezien = new Set();
         const uniek = [];
-        for (const d of bron) {
+        for (const d of komendeBussen) {
           const sleutel = d.departure_time + '|' + d.line + '|' + d.destination;
           if (!gezien.has(sleutel)) {
             gezien.add(sleutel);
@@ -250,37 +259,39 @@
           }
         }
 
-        uniek.slice(0, maxRijen).forEach(b => {
-          const tijdStr = b.departure_time.slice(0, 5);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="col-tijd">${tijdStr}</td>
-            <td class="col-lijn">${b.line}</td>
-            <td class="col-bestemming" title="${b.destination}">${b.destination}</td>
-          `;
-          rijenBus.appendChild(tr);
-        });
+        if (uniek.length > 0) {
+          uniek.slice(0, maxRijen).forEach(b => {
+            const tijdStr = b.departure_time.slice(0, 5);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="col-tijd">${tijdStr}</td>
+              <td class="col-lijn">${b.line}</td>
+              <td class="col-bestemming" title="${b.destination}">${b.destination}</td>
+            `;
+            rijenBus.appendChild(tr);
+          });
+        } else {
+          rijenBus.innerHTML = '<tr><td colspan="3">Geen komende bussen voor vandaag</td></tr>';
+        }
       } else {
         rijenBus.innerHTML = '<tr><td colspan="3">Kan bustijden niet ophalen</td></tr>';
       }
     }
 
-    // Dynamische lettergrootte op basis van hoogte én breedte van het venster
     function schaalTekstIn() {
       const tafels = document.querySelectorAll('table');
       const berekendeGrootte = Math.min(window.innerHeight * 0.027, window.innerWidth * 0.015);
-      const fontSize = Math.max(14, berekendeGrootte); // Minimaal 14px voor leesbaarheid
+      const fontSize = Math.max(14, berekendeGrootte);
       
       tafels.forEach(tafel => {
         tafel.style.fontSize = fontSize + 'px';
       });
     }
 
-    // Starten & interval
     haalDataOp();
-    setInterval(haalDataOp, 60 * 1000);
+    setInterval(haalDataOp, 30 * 1000);
+    setInterval(renderTafels, 10 * 1000);
 
-    // Dynamisch herberekend zodra het venster van formaat verandert
     window.addEventListener('resize', renderTafels);
   </script>
 </body>
