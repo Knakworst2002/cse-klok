@@ -167,7 +167,16 @@
 
         if (resTrein.ok) {
           const raw = await resTrein.json();
-          treinData = (raw.payload && raw.payload.departures) || raw.departures || raw;
+          // Uitgebreide uitpaklogica voor alle mogelijke NS JSON formats
+          if (Array.isArray(raw)) {
+            treinData = raw;
+          } else if (raw.departures && Array.isArray(raw.departures)) {
+            treinData = raw.departures;
+          } else if (raw.payload && raw.payload.departures && Array.isArray(raw.payload.departures)) {
+            treinData = raw.payload.departures;
+          } else {
+            treinData = [];
+          }
         }
 
         if (resBus.ok) {
@@ -200,16 +209,18 @@
       rijenTrein.innerHTML = '';
 
       if (Array.isArray(treinData) && treinData.length > 0) {
-        // Alleen treinen pakken van VANDAAG die niet langer dan 2 minuten geleden vertrokken zijn
-        const grensTijd = new Date(nu.getTime() - 2 * 60 * 1000);
+        // Welke vertrekken liggen niet langer dan 5 minuten in het verleden
+        const grensTijd = new Date(nu.getTime() - 5 * 60 * 1000);
 
         const geldigeTreinen = treinData.filter(v => {
-          const vertrekIso = v.actualDateTime || v.plannedDateTime;
+          const vertrekIso = v.actualDateTime || v.plannedDateTime || v.plannedDepartureTime;
           if (!vertrekIso) return false;
           const vertrekDatum = new Date(vertrekIso);
           return vertrekDatum >= grensTijd;
         }).sort((a, b) => {
-          return new Date(a.actualDateTime || a.plannedDateTime) - new Date(b.actualDateTime || b.plannedDateTime);
+          const tA = new Date(a.actualDateTime || a.plannedDateTime || a.plannedDepartureTime);
+          const tB = new Date(b.actualDateTime || b.plannedDateTime || b.plannedDepartureTime);
+          return tA - tB;
         });
 
         if (geldigeTreinen.length > 0) {
@@ -219,7 +230,9 @@
             const tijd = new Date(actualStr || plannedStr);
             const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             const vertraagd = actualStr && plannedStr && (new Date(actualStr) > new Date(plannedStr));
-            const bestemming = v.direction || v.destination || '-';
+            
+            // Flexibele velden voor bestemming en spoor
+            const bestemming = v.direction || v.destination || (v.destinationDetail && v.destinationDetail.main) || '-';
             const spoor = v.actualTrack || (v.plannedTrackInfo && v.plannedTrackInfo.actualTrack) || v.plannedTrack || '-';
 
             const tr = document.createElement('tr');
@@ -231,7 +244,7 @@
             rijenTrein.appendChild(tr);
           });
         } else {
-          rijenTrein.innerHTML = '<tr><td colspan="3">Treingegevens worden geladen...</td></tr>';
+          rijenTrein.innerHTML = '<tr><td colspan="3">Geen komende treinen gevonden</td></tr>';
         }
       } else {
         rijenTrein.innerHTML = '<tr><td colspan="3">Geen actuele vertrektijden gevonden</td></tr>';
