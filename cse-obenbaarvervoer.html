@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>CSE Vertrektijden</title>
+  <title>CSE Vertrektijden Bussen</title>
   <style>
     html, body {
       margin: 0;
@@ -18,10 +18,10 @@
     #wrapper {
       width: 100%;
       height: 100%;
-      padding: 2vh 2vw;
+      padding: 3vh 3vw;
       box-sizing: border-box;
       display: flex;
-      gap: 2vw;
+      flex-direction: column;
     }
 
     .kolom {
@@ -34,11 +34,11 @@
 
     .titel {
       color: #0fb6ff;
-      font-size: clamp(1.2rem, 3.2vh, 2.5rem);
+      font-size: clamp(1.5rem, 4vh, 3rem);
       font-weight: 800;
       padding: 0.5vh 0;
-      margin-bottom: 1vh;
-      border-bottom: 3px solid #0fb6ff;
+      margin-bottom: 2vh;
+      border-bottom: 4px solid #0fb6ff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -60,12 +60,12 @@
       text-align: left;
       font-weight: 700;
       color: #0fb6ff;
-      border-bottom: 2px solid #0fb6ff;
-      padding: 0.8vh 0.4vw;
+      border-bottom: 3px solid #0fb6ff;
+      padding: 1vh 0.5vw;
     }
 
     td {
-      padding: 1vh 0.4vw;
+      padding: 1.2vh 0.5vw;
       border-bottom: 1px solid rgba(15, 182, 255, 0.25);
       font-weight: 600;
       white-space: nowrap;
@@ -73,15 +73,9 @@
       text-overflow: ellipsis;
     }
 
-    .col-tijd { width: 22%; }
-    .col-lijn { width: 18%; }
-    .col-bestemming { width: 60%; }
-    .col-spoor { width: 18%; }
-
-    .vertraagd {
-      color: #ff5050;
-      font-weight: 800;
-    }
+    .col-tijd { width: 15%; }
+    .col-lijn { width: 15%; }
+    .col-bestemming { width: 70%; }
 
     .buiten-dienst {
       color: #777;
@@ -92,24 +86,6 @@
 </head>
 <body>
   <div id="wrapper">
-    <div class="kolom">
-      <div class="titel">🚆 Treinstation: Zwolle Centraal</div>
-      <div class="tabel-container" id="container-trein">
-        <table>
-          <thead>
-            <tr>
-              <th class="col-tijd">Tijd</th>
-              <th class="col-bestemming">Bestemming</th>
-              <th class="col-spoor">Spoor</th>
-            </tr>
-          </thead>
-          <tbody id="rijen-trein">
-            <tr><td colspan="3">Laden...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
     <div class="kolom">
       <div class="titel">🚌 Busstation: Stadionplein</div>
       <div class="tabel-container" id="container-bus">
@@ -130,7 +106,6 @@
   </div>
 
   <script>
-    let treinData = null;
     let busData = null;
 
     function isBinnenBedrijfstijd() {
@@ -141,12 +116,11 @@
     }
 
     function berekenAantalRijen() {
-      const container = document.getElementById('container-trein');
+      const container = document.getElementById('container-bus');
       const containerHoogte = container.clientHeight;
-      const rijHoogte = Math.max(35, window.innerHeight * 0.052); 
-      const thHoogte = Math.max(30, window.innerHeight * 0.045);
-      const beschikbareRuimte = containerHoogte - thHoogte;
-      return Math.max(3, Math.floor(beschikbareRuimte / rijHoogte));
+      const rijHoogte = Math.max(40, window.innerHeight * 0.055); 
+      const thHoogte = Math.max(35, window.innerHeight * 0.05);
+      return Math.max(3, Math.floor((containerHoogte - thHoogte) / rijHoogte));
     }
 
     async function haalDataOp() {
@@ -155,96 +129,41 @@
         return;
       }
 
-      const timestamp = new Date().getTime();
+      const ts = Date.now();
       try {
-        const [resTrein, resBus] = await Promise.all([
-          fetch(`./trein.json?v=${timestamp}`, { cache: 'no-cache' }),
-          fetch(`./bus.json?v=${timestamp}`, { cache: 'no-cache' })
-        ]);
-
-        if (resTrein.ok) {
-          const raw = await resTrein.json();
-          // Uitpakken van alle mogelijke structuren
-          if (Array.isArray(raw)) treinData = raw;
-          else if (raw.departures) treinData = raw.departures;
-          else if (raw.payload && raw.payload.departures) treinData = raw.payload.departures;
-          else treinData = [];
-        }
+        const resBus = await fetch(`./bus.json?cache=${ts}`, { cache: 'no-store' });
 
         if (resBus.ok) {
           const raw = await resBus.json();
           busData = raw.departures || raw;
         }
 
-        renderTafels();
+        renderTafel();
       } catch (e) {
-        console.error("Fout bij ophalen data:", e);
+        console.error("Fout bij ophalen bustijden:", e);
       }
     }
 
     function toonBuitenDienst() {
       const msg = '<tr><td colspan="3" class="buiten-dienst">Vertrektijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
-      document.getElementById('rijen-trein').innerHTML = msg;
       document.getElementById('rijen-bus').innerHTML = msg;
     }
 
-    function renderTafels() {
+    function renderTafel() {
       if (!isBinnenBedrijfstijd()) return;
 
       const maxRijen = berekenAantalRijen();
       schaalTekstIn();
 
       const nu = new Date();
-      const huidigUurMin = String(nu.getHours()).padStart(2, '0') + ":" + String(nu.getMinutes()).padStart(2, '0');
-
-      // --- Treinen ---
-      const rijenTrein = document.getElementById('rijen-trein');
-      rijenTrein.innerHTML = '';
-
-      if (Array.isArray(treinData) && treinData.length > 0) {
-        // Welke vertrekken zijn nu of in de toekomst (op HH:MM basis)
-        const geldigeTreinen = treinData.map(v => {
-          const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
-          const actualStr = v.actualDateTime || v.plannedDepartureTime;
-          const d = new Date(actualStr || plannedStr);
-          const hhmm = String(d.getHours()).padStart(2, '0') + ":" + String(d.getMinutes()).padStart(2, '0');
-          return { original: v, hhmm: hhmm, dateObj: d };
-        })
-        .filter(t => t.hhmm >= huidigUurMin)
-        .sort((a, b) => a.dateObj - b.dateObj);
-
-        if (geldigeTreinen.length > 0) {
-          geldigeTreinen.slice(0, maxRijen).forEach(item => {
-            const v = item.original;
-            const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
-            const actualStr = v.actualDateTime || v.plannedDepartureTime;
-            const vertraagd = actualStr && plannedStr && (new Date(actualStr) > new Date(plannedStr));
-            
-            const bestemming = v.direction || v.destination || (v.destinationDetail && v.destinationDetail.main) || '-';
-            const spoor = v.actualTrack || (v.plannedTrackInfo && v.plannedTrackInfo.actualTrack) || v.plannedTrack || '-';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td class="col-tijd ${vertraagd ? 'vertraagd' : ''}">${item.hhmm}</td>
-              <td class="col-bestemming" title="${bestemming}">${bestemming}</td>
-              <td class="col-spoor">${spoor}</td>
-            `;
-            rijenTrein.appendChild(tr);
-          });
-        } else {
-          rijenTrein.innerHTML = '<tr><td colspan="3">Geen komende treinen voor vandaag</td></tr>';
-        }
-      } else {
-        rijenTrein.innerHTML = '<tr><td colspan="3">Geen actuele treingegevens geladen</td></tr>';
-      }
-
-      // --- Bussen ---
       const rijenBus = document.getElementById('rijen-bus');
       rijenBus.innerHTML = '';
 
       if (Array.isArray(busData) && busData.length > 0) {
+        const uur = String(nu.getHours()).padStart(2, '0');
+        const min = String(nu.getMinutes()).padStart(2, '0');
         const sec = String(nu.getSeconds()).padStart(2, '0');
-        const nuStr = `${huidigUurMin}:${sec}`;
+        const nuStr = `${uur}:${min}:${sec}`;
 
         const komendeBussen = busData.filter(d => d.departure_time >= nuStr);
 
@@ -278,16 +197,15 @@
     }
 
     function schaalTekstIn() {
-      const tafels = document.querySelectorAll('table');
-      const berekendeGrootte = Math.min(window.innerHeight * 0.027, window.innerWidth * 0.015);
-      const fontSize = Math.max(14, berekendeGrootte);
-      tafels.forEach(tafel => tafel.style.fontSize = fontSize + 'px');
+      const tafel = document.querySelector('table');
+      const berekendeGrootte = Math.min(window.innerHeight * 0.03, window.innerWidth * 0.02);
+      tafel.style.fontSize = Math.max(16, berekendeGrootte) + 'px';
     }
 
     haalDataOp();
     setInterval(haalDataOp, 30 * 1000);
-    setInterval(renderTafels, 10 * 1000);
-    window.addEventListener('resize', renderTafels);
+    setInterval(renderTafel, 10 * 1000);
+    window.addEventListener('resize', renderTafel);
   </script>
 </body>
 </html>
