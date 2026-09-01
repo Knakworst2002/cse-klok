@@ -137,7 +137,7 @@ function bepaalVerdieping(item) {
   // Haal alleen de cijfers uit het lokaalnummer (bijv. "9a" -> 9)
   const lokaalNummer = parseInt(item.lokaal.toString().replace(/\D/g, ''), 10);
   
-  if (!isNaN(lokaalNummer) && lokaalNummer <= 9) {
+  if (!isNaN(lokaalNummer) && lokaalNummer <= 12) {
     return "Begane grond";
   }
   return "1e Verdieping (Boven)";
