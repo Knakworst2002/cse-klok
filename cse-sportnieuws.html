@@ -26,7 +26,6 @@
 
     .header-container {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       margin-bottom: 2.5vh;
       border-bottom: 4px solid #0fb6ff;
@@ -41,19 +40,12 @@
       margin: 0;
     }
 
-    #klok {
-      color: #0fb6ff;
-      font-size: clamp(2rem, 4.5vh, 3.2rem);
-      font-weight: 700;
-    }
-
-    /* Grid met 3 kolommen voor de nieuwsartikelen */
     .nieuws-grid {
       flex: 1;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 2vw;
-      min-height: 0; /* Voorkomt overflow */
+      min-height: 0;
     }
 
     .nieuws-kaart {
@@ -106,8 +98,7 @@
 <body>
   <div id="wrapper">
     <div class="header-container">
-      <h1 class="titel">⚽ Laatste Sportnieuws</h1>
-      <div id="klok">--:--</div>
+      <h1 class="titel">🏆 Sportnieuws</h1>
     </div>
     
     <div class="nieuws-grid" id="nieuws-grid">
@@ -118,16 +109,6 @@
   </div>
 
   <script>
-    // --- KLOK ---
-    function updateKlok() {
-      const nu = new Date();
-      document.getElementById('klok').textContent = new Intl.DateTimeFormat('nl-NL', {
-        hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Amsterdam'
-      }).format(nu);
-    }
-    updateKlok();
-    setInterval(updateKlok, 1000);
-
     // --- SPORTNIEUWS ---
     async function haalSportNieuwsOp() {
       const rssUrl = encodeURIComponent('https://feeds.feedburner.com/nossportalgemeen');
@@ -152,7 +133,6 @@
       grid.innerHTML = '';
 
       artikelen.forEach(item => {
-        // Tekst opschonen en inkorten tot 2 zinnen
         let schoneBeschrijving = item.description.replace(/<[^>]*>?/gm, '').trim();
         const zinnen = schoneBeschrijving.split('. ');
         if (zinnen.length > 0) {
@@ -163,7 +143,6 @@
           }
         }
 
-        // Afbeelding ophalen
         let imageUrl = null;
         if (item.thumbnail) {
           imageUrl = item.thumbnail;
@@ -188,7 +167,7 @@
       });
     }
 
-    // Starten & elke 10 minuten de meest recente 3 artikelen ophalen
+    // Starten & elke 10 minuten de meest recente 3 artikelen verversen
     haalSportNieuwsOp();
     setInterval(haalSportNieuwsOp, 10 * 60 * 1000);
   </script>
