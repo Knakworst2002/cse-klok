@@ -1,211 +1,28 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <title>CSE Vertrektijden Bussen</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #ffffff;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      overflow: hidden;
-      box-sizing: border-box;
-    }
-
-    #wrapper {
-      width: 100%;
-      height: 100%;
-      padding: 3vh 3vw;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .kolom {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      min-width: 0;
-    }
-
-    .titel {
-      color: #0fb6ff;
-      font-size: clamp(1.5rem, 4vh, 3rem);
-      font-weight: 800;
-      padding: 0.5vh 0;
-      margin-bottom: 2vh;
-      border-bottom: 4px solid #0fb6ff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tabel-container {
-      flex: 1;
-      overflow: hidden;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      color: #000000;
-      table-layout: fixed;
-    }
-
-    th {
-      text-align: left;
-      font-weight: 700;
-      color: #0fb6ff;
-      border-bottom: 3px solid #0fb6ff;
-      padding: 1vh 0.5vw;
-    }
-
-    td {
-      padding: 1.2vh 0.5vw;
-      border-bottom: 1px solid rgba(15, 182, 255, 0.25);
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .col-tijd { width: 15%; }
-    .col-lijn { width: 15%; }
-    .col-bestemming { width: 70%; }
-
-    .buiten-dienst {
-      color: #777;
-      font-style: italic;
-      white-space: normal;
-    }
-  </style>
-</head>
-<body>
-  <div id="wrapper">
-    <div class="kolom">
-      <div class="titel">🚌 Busstation: Stadionplein</div>
-      <div class="tabel-container" id="container-bus">
-        <table>
-          <thead>
-            <tr>
-              <th class="col-tijd">Tijd</th>
-              <th class="col-lijn">Lijn</th>
-              <th class="col-bestemming">Bestemming</th>
-            </tr>
-          </thead>
-          <tbody id="rijen-bus">
-            <tr><td colspan="3">Laden...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let busData = null;
-
-    function isBinnenBedrijfstijd() {
-      const nu = new Date();
-      const dag = nu.getDay(); // 1 = Ma, ..., 5 = Vr
-      const uur = nu.getHours();
-      return (dag >= 1 && dag <= 5) && (uur >= 8 && uur < 17);
-    }
-
-    function berekenAantalRijen() {
-      const container = document.getElementById('container-bus');
-      const containerHoogte = container.clientHeight;
-      const rijHoogte = Math.max(40, window.innerHeight * 0.055); 
-      const thHoogte = Math.max(35, window.innerHeight * 0.05);
-      return Math.max(3, Math.floor((containerHoogte - thHoogte) / rijHoogte));
-    }
-
-    async function haalDataOp() {
+async function haalDataOp() {
       if (!isBinnenBedrijfstijd()) {
         toonBuitenDienst();
         return;
       }
 
-      const ts = Date.now();
+      // Unieke query-parameter om browser-cache 100% te omzeilen
+      const cacheBuster = Math.random();
       try {
-        const resBus = await fetch(`./bus.json?cache=${ts}`, { cache: 'no-store' });
+        const resBus = await fetch(`./bus.json?nocache=${cacheBuster}`, {
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+          }
+        });
 
         if (resBus.ok) {
           const raw = await resBus.json();
           busData = raw.departures || raw;
+          renderTafel();
+        } else {
+          console.error("Kon bus.json niet laden, status:", resBus.status);
         }
-
-        renderTafel();
       } catch (e) {
         console.error("Fout bij ophalen bustijden:", e);
       }
     }
-
-    function toonBuitenDienst() {
-      const msg = '<tr><td colspan="3" class="buiten-dienst">Vertrektijden alleen beschikbaar op werkdagen van 08:00 tot 17:00</td></tr>';
-      document.getElementById('rijen-bus').innerHTML = msg;
-    }
-
-    function renderTafel() {
-      if (!isBinnenBedrijfstijd()) return;
-
-      const maxRijen = berekenAantalRijen();
-      schaalTekstIn();
-
-      const nu = new Date();
-      const rijenBus = document.getElementById('rijen-bus');
-      rijenBus.innerHTML = '';
-
-      if (Array.isArray(busData) && busData.length > 0) {
-        const uur = String(nu.getHours()).padStart(2, '0');
-        const min = String(nu.getMinutes()).padStart(2, '0');
-        const sec = String(nu.getSeconds()).padStart(2, '0');
-        const nuStr = `${uur}:${min}:${sec}`;
-
-        const komendeBussen = busData.filter(d => d.departure_time >= nuStr);
-
-        const gezien = new Set();
-        const uniek = [];
-        for (const d of komendeBussen) {
-          const sleutel = d.departure_time + '|' + d.line + '|' + d.destination;
-          if (!gezien.has(sleutel)) {
-            gezien.add(sleutel);
-            uniek.push(d);
-          }
-        }
-
-        if (uniek.length > 0) {
-          uniek.slice(0, maxRijen).forEach(b => {
-            const tijdStr = b.departure_time.slice(0, 5);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td class="col-tijd">${tijdStr}</td>
-              <td class="col-lijn">${b.line}</td>
-              <td class="col-bestemming" title="${b.destination}">${b.destination}</td>
-            `;
-            rijenBus.appendChild(tr);
-          });
-        } else {
-          rijenBus.innerHTML = '<tr><td colspan="3">Geen komende bussen voor vandaag</td></tr>';
-        }
-      } else {
-        rijenBus.innerHTML = '<tr><td colspan="3">Kan bustijden niet ophalen</td></tr>';
-      }
-    }
-
-    function schaalTekstIn() {
-      const tafel = document.querySelector('table');
-      const berekendeGrootte = Math.min(window.innerHeight * 0.03, window.innerWidth * 0.02);
-      tafel.style.fontSize = Math.max(16, berekendeGrootte) + 'px';
-    }
-
-    haalDataOp();
-    setInterval(haalDataOp, 30 * 1000);
-    setInterval(renderTafel, 10 * 1000);
-    window.addEventListener('resize', renderTafel);
-  </script>
-</body>
-</html>
