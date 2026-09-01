@@ -143,14 +143,10 @@
     function berekenAantalRijen() {
       const container = document.getElementById('container-trein');
       const containerHoogte = container.clientHeight;
-      
       const rijHoogte = Math.max(35, window.innerHeight * 0.052); 
       const thHoogte = Math.max(30, window.innerHeight * 0.045);
-
       const beschikbareRuimte = containerHoogte - thHoogte;
-      const aantal = Math.floor(beschikbareRuimte / rijHoogte);
-      
-      return Math.max(3, aantal);
+      return Math.max(3, Math.floor(beschikbareRuimte / rijHoogte));
     }
 
     async function haalDataOp() {
@@ -159,24 +155,20 @@
         return;
       }
 
+      const timestamp = new Date().getTime();
       try {
         const [resTrein, resBus] = await Promise.all([
-          fetch('./trein.json?t=' + Date.now(), { cache: 'no-store' }),
-          fetch('./bus.json?t=' + Date.now(), { cache: 'no-store' })
+          fetch(`./trein.json?v=${timestamp}`, { cache: 'no-cache' }),
+          fetch(`./bus.json?v=${timestamp}`, { cache: 'no-cache' })
         ]);
 
         if (resTrein.ok) {
           const raw = await resTrein.json();
-          // Uitgebreide uitpaklogica voor alle mogelijke NS JSON formats
-          if (Array.isArray(raw)) {
-            treinData = raw;
-          } else if (raw.departures && Array.isArray(raw.departures)) {
-            treinData = raw.departures;
-          } else if (raw.payload && raw.payload.departures && Array.isArray(raw.payload.departures)) {
-            treinData = raw.payload.departures;
-          } else {
-            treinData = [];
-          }
+          // Uitpakken van alle mogelijke structuren
+          if (Array.isArray(raw)) treinData = raw;
+          else if (raw.departures) treinData = raw.departures;
+          else if (raw.payload && raw.payload.departures) treinData = raw.payload.departures;
+          else treinData = [];
         }
 
         if (resBus.ok) {
@@ -203,51 +195,47 @@
       schaalTekstIn();
 
       const nu = new Date();
+      const huidigUurMin = String(nu.getHours()).padStart(2, '0') + ":" + String(nu.getMinutes()).padStart(2, '0');
 
       // --- Treinen ---
       const rijenTrein = document.getElementById('rijen-trein');
       rijenTrein.innerHTML = '';
 
       if (Array.isArray(treinData) && treinData.length > 0) {
-        // Welke vertrekken liggen niet langer dan 5 minuten in het verleden
-        const grensTijd = new Date(nu.getTime() - 5 * 60 * 1000);
-
-        const geldigeTreinen = treinData.filter(v => {
-          const vertrekIso = v.actualDateTime || v.plannedDateTime || v.plannedDepartureTime;
-          if (!vertrekIso) return false;
-          const vertrekDatum = new Date(vertrekIso);
-          return vertrekDatum >= grensTijd;
-        }).sort((a, b) => {
-          const tA = new Date(a.actualDateTime || a.plannedDateTime || a.plannedDepartureTime);
-          const tB = new Date(b.actualDateTime || b.plannedDateTime || b.plannedDepartureTime);
-          return tA - tB;
-        });
+        // Welke vertrekken zijn nu of in de toekomst (op HH:MM basis)
+        const geldigeTreinen = treinData.map(v => {
+          const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
+          const actualStr = v.actualDateTime || v.plannedDepartureTime;
+          const d = new Date(actualStr || plannedStr);
+          const hhmm = String(d.getHours()).padStart(2, '0') + ":" + String(d.getMinutes()).padStart(2, '0');
+          return { original: v, hhmm: hhmm, dateObj: d };
+        })
+        .filter(t => t.hhmm >= huidigUurMin)
+        .sort((a, b) => a.dateObj - b.dateObj);
 
         if (geldigeTreinen.length > 0) {
-          geldigeTreinen.slice(0, maxRijen).forEach(v => {
+          geldigeTreinen.slice(0, maxRijen).forEach(item => {
+            const v = item.original;
             const plannedStr = v.plannedDateTime || v.plannedDepartureTime;
             const actualStr = v.actualDateTime || v.plannedDepartureTime;
-            const tijd = new Date(actualStr || plannedStr);
-            const tijdStr = tijd.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             const vertraagd = actualStr && plannedStr && (new Date(actualStr) > new Date(plannedStr));
             
-            // Flexibele velden voor bestemming en spoor
             const bestemming = v.direction || v.destination || (v.destinationDetail && v.destinationDetail.main) || '-';
             const spoor = v.actualTrack || (v.plannedTrackInfo && v.plannedTrackInfo.actualTrack) || v.plannedTrack || '-';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td class="col-tijd ${vertraagd ? 'vertraagd' : ''}">${tijdStr}</td>
+              <td class="col-tijd ${vertraagd ? 'vertraagd' : ''}">${item.hhmm}</td>
               <td class="col-bestemming" title="${bestemming}">${bestemming}</td>
               <td class="col-spoor">${spoor}</td>
             `;
             rijenTrein.appendChild(tr);
           });
         } else {
-          rijenTrein.innerHTML = '<tr><td colspan="3">Geen komende treinen gevonden</td></tr>';
+          rijenTrein.innerHTML = '<tr><td colspan="3">Geen komende treinen voor vandaag</td></tr>';
         }
       } else {
-        rijenTrein.innerHTML = '<tr><td colspan="3">Geen actuele vertrektijden gevonden</td></tr>';
+        rijenTrein.innerHTML = '<tr><td colspan="3">Geen actuele treingegevens geladen</td></tr>';
       }
 
       // --- Bussen ---
@@ -255,10 +243,8 @@
       rijenBus.innerHTML = '';
 
       if (Array.isArray(busData) && busData.length > 0) {
-        const uur = String(nu.getHours()).padStart(2, '0');
-        const min = String(nu.getMinutes()).padStart(2, '0');
         const sec = String(nu.getSeconds()).padStart(2, '0');
-        const nuStr = `${uur}:${min}:${sec}`;
+        const nuStr = `${huidigUurMin}:${sec}`;
 
         const komendeBussen = busData.filter(d => d.departure_time >= nuStr);
 
@@ -295,16 +281,12 @@
       const tafels = document.querySelectorAll('table');
       const berekendeGrootte = Math.min(window.innerHeight * 0.027, window.innerWidth * 0.015);
       const fontSize = Math.max(14, berekendeGrootte);
-      
-      tafels.forEach(tafel => {
-        tafel.style.fontSize = fontSize + 'px';
-      });
+      tafels.forEach(tafel => tafel.style.fontSize = fontSize + 'px');
     }
 
     haalDataOp();
     setInterval(haalDataOp, 30 * 1000);
     setInterval(renderTafels, 10 * 1000);
-
     window.addEventListener('resize', renderTafels);
   </script>
 </body>
