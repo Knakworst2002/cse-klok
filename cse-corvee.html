@@ -1,74 +1,23 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <title>CSE Corvee</title>
+<style>
+#cse-corvee { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 2vh 2.5vh; background: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; }
+#cse-corvee .titel { color: #0fb6ff; font-size: 4.2vh; font-weight: 800; text-transform: capitalize; letter-spacing: 0.02em; margin-bottom: 1.5vh; }
+#cse-corvee .klas { color: #000000; font-size: 3.5vh; font-weight: 600; padding: 0.35em 0.5em; border-bottom: 1px solid rgba(0,0,0,0.15); display: flex; justify-content: space-between; margin-bottom: 0.8vh; }
+#cse-corvee .klas-label { color: #0fb6ff; font-weight: 700; }
+</style>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: #ffffff;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      overflow: hidden;
-    }
-
-    #wrapper {
-      padding: 2vh 2.5vh;
-      box-sizing: border-box;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    #titel-header {
-      color: #0fb6ff;
-      font-size: 4.2vh;
-      font-weight: 800;
-      text-transform: capitalize;
-      letter-spacing: 0.02em;
-      margin-bottom: 1.5vh;
-    }
-
-    #klassen {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8vh;
-    }
-
-    .klas {
-      color: #000000;
-      font-size: 3.5vh;
-      font-weight: 600;
-      padding: 0.35em 0.5em;
-      border-bottom: 1px solid rgba(0,0,0,0.15);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .klas-naam {
-      color: #000000;
-    }
-
-    .klas-label {
-      color: #0fb6ff;
-      font-weight: 700;
-    }
-  </style>
-</head>
-
-<body>
-
-<div id="wrapper">
-  <div id="titel-header">--</div>
-  <div id="klassen"></div>
+<div id="cse-corvee">
+  <div class="titel" id="cse-titel">--</div>
+  <div id="cse-klassen"></div>
 </div>
 
 <script>
-// 1. Alle leerlingen op exacte volgorde van 6V omlaag naar 1BK
-const alleKlassen = [
+(function () {
+  var MORGEN = false;
+  var DATUM_TEST = "";
+  var START_DATUM = new Date(2026, 7, 31);
+  var PER_DAG = 5;
+
+  var alleKlassen = [
   { klas: "6V", leerlingen: ["Pepijn Albers", "Krijn Dijkstra", "Robbin Engbers", "Maud Francken", "Edgar Herpel", "Meyke van Hout", "Eveline de Jong", "Teske Kreulen", "Mirte Kroes", "Jurre Lodder", "Jelle van Loon", "Juul Los", "Diego van der Meer", "Maud Meester", "Tessa van der Sande", "Karlijn Schuijzeman", "Jeron Seine", "Job Teklenburg", "Ellemeike Visser", "Ruben van der Wal", "Tim Weijers", "Oskar Welmers", "Fenna Westerneng", "Stijn Wiersum"] },
   { klas: "5V", leerlingen: ["Nina Adriaansz", "Gideon Bertholee", "Valerie Douma", "Fabian Duijzend", "Puck Eijbersen", "Koen Folkersma", "Maurits Frizo", "Anniek Jeurnink", "Jet Kessels", "Lieke Kramer", "Jinte Landman", "Romyrle ter Maat", "Joachim Meurs", "Migel Meyer", "Tijn Nijhof", "Bryant Nyika", "Lily Ridderbos", "Paula Spans", "Luuk Verburgt", "Esmée Volkers", "Elin de Weerd", "Maurits Witvoet"] },
   { klas: "5Hb", leerlingen: ["Raff Algera", "Famke Booij", "Mees Denee", "Bas Dertien", "Emma Everaars", "Joshua Gooijer", "Fenna Groot Roessink", "Evi Hartman", "Annelie Hendriksen", "Kai Jacobs", "Inez Jansen", "Niek Kamstra", "Emmi Klomp", "Mart Meijerink", "Jesper Peters", "Ezra Reinds", "Nina Sakkers", "Sophie Slabbekoorn", "Mats van der Sluis", "Twan Snijder", "Laure Steenis", "Kim Veenendaal", "Brecht Veenstra", "Jorai Veenstra", "Chloe Wanders", "Sarah Wanders"] },
@@ -94,100 +43,84 @@ const alleKlassen = [
   { klas: "1THb", leerlingen: ["Babet Beldman", "Lorenzo Bleeker", "Valentijn Bos", "Niels Brinks", "Bas Burgers", "Jaélah van Dijk", "Kian Dijksma", "Norah Fransman", "Jesper Gerritsen", "Nino Hertig", "Sepp Holterman", "Rayaan Nzeyimana", "Sijmen van Polen", "Luna Rangel de Melo Carvalho", "Benjamin Staelens", "Liomar Tuitt", "Olivier Witvoet", "Tara van der Wal", "Twan Kattenberg"] },
   { klas: "1THa", leerlingen: ["Vira Aleksieieva", "Vigo Bakkenes", "Xavi van den Berg", "Maximilian Beroeatwarin", "Wietse Bisschop", "Stijn Bogerman", "Lynn Busscher", "Mees Dalhuisen", "Niels de Groot", "Roan Hekman", "Jurrian Hogenelst", "Daniël Kaatman", "Bas van Klaveren", "Luka Retuadan", "Rein Schipper", "Liv Stronkhorst", "Pepijn van Vliet", "Dani van der Wal", "Ivey Witteveen", "Raaf Wouda", "Serginho Janga"] },
   { klas: "1BK", leerlingen: ["Rens van Olst", "Ilay Al-Abbudi", "Gabriel Cotorobai", "Sem van Gerner", "Amy Gooren", "Lyanne Groot", "Arie Dirk Kuijt", "Mila Jasmijn Middel", "Kyan Moes", "Carter Njeumen", "Vladimir Olinek", "Guus Overweg", "Leroy Stevens", "Leila Daku"] }
-];
+  ];
 
-// Platgeslagen array van ALLE leerlingen
-const platteLijst = [];
-alleKlassen.forEach(k => {
-  k.leerlingen.forEach(leerling => {
-    platteLijst.push({ naam: leerling, klas: k.klas });
-  });
-});
+  var DAGEN = ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"];
+  var MAANDEN = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
 
-const START_DATUM = new Date("2026-08-31T00:00:00");
-
-function getDatumDetails() {
-  const params = new URLSearchParams(window.location.search);
-  let datum = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Amsterdam" }));
-
-  const override = params.get("datum");
-  if (override) {
-    return { datum: new Date(override + "T00:00:00"), isMorgen: params.get("morgen") === "true" };
-  }
-
-  const isMorgen = params.get("morgen") === "true";
-  if (isMorgen) {
-    datum.setDate(datum.getDate() + 1);
-  }
-
-  return { datum, isMorgen };
-}
-
-function berekenSchooldagenVanafStart(doelDatum) {
-  let teller = 0;
-  let cursor = new Date(START_DATUM.getTime());
-  
-  cursor.setHours(0,0,0,0);
-  const target = new Date(doelDatum.getTime());
-  target.setHours(0,0,0,0);
-
-  while (cursor < target) {
-    const dag = cursor.getDay();
-    if (dag !== 0 && dag !== 6) { // Geen weekend
-      teller++;
+  var platteLijst = [];
+  for (var i = 0; i < alleKlassen.length; i++) {
+    for (var j = 0; j < alleKlassen[i].leerlingen.length; j++) {
+      platteLijst.push({ naam: alleKlassen[i].leerlingen[j], klas: alleKlassen[i].klas });
     }
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return teller;
-}
-
-function formatteerDatum(datum) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    weekday: "long",
-    day: "numeric",
-    month: "long"
-  }).format(datum);
-}
-
-function update() {
-  const { datum, isMorgen } = getDatumDetails();
-  let dag = datum.getDay();
-
-  // Weekend afhandeling: schuif door naar maandag
-  if (dag === 6) datum.setDate(datum.getDate() + 2);
-  if (dag === 0) datum.setDate(datum.getDate() + 1);
-
-  const schooldagenGeweest = berekenSchooldagenVanafStart(datum);
-  
-  const startIndex = (schooldagenGeweest * 5) % platteLijst.length;
-  const dagSelectie = [];
-
-  for (let i = 0; i < 5; i++) {
-    const index = (startIndex + i) % platteLijst.length;
-    dagSelectie.push(platteLijst[index]);
   }
 
-  // Toont "Corvee vandaag - [datum]" of "Corvee morgen - [datum]"
-  const label = isMorgen ? "Corvee morgen" : "Corvee vandaag";
-  document.getElementById("titel-header").textContent = label + " - " + formatteerDatum(datum);
+  function nuAmsterdam() {
+    return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Amsterdam" }));
+  }
 
-  const container = document.getElementById("klassen");
-  container.innerHTML = "";
+  function bepaalDatum() {
+    if (DATUM_TEST) {
+      var d = DATUM_TEST.split("-");
+      return new Date(parseInt(d[0], 10), parseInt(d[1], 10) - 1, parseInt(d[2], 10));
+    }
+    var nu = nuAmsterdam();
+    if (MORGEN) nu.setDate(nu.getDate() + 1);
+    return nu;
+  }
 
-  dagSelectie.forEach(item => {
-    const div = document.createElement("div");
+  function schooldagenVanafStart(doel) {
+    var teller = 0;
+    var cursor = new Date(START_DATUM.getTime());
+    cursor.setHours(0, 0, 0, 0);
+    var target = new Date(doel.getTime());
+    target.setHours(0, 0, 0, 0);
+    while (cursor < target) {
+      var dag = cursor.getDay();
+      if (dag !== 0 && dag !== 6) teller++;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return teller;
+  }
+
+  function maakRij(item) {
+    var div = document.createElement("div");
     div.className = "klas";
-    div.innerHTML = `
-      <span class="klas-naam">${item.naam}</span>
-      <span class="klas-label">${item.klas}</span>
-    `;
-    container.appendChild(div);
-  });
-}
+    var naam = document.createElement("span");
+    naam.textContent = item.naam;
+    var label = document.createElement("span");
+    label.className = "klas-label";
+    label.textContent = item.klas;
+    div.appendChild(naam);
+    div.appendChild(label);
+    return div;
+  }
 
-update();
-setInterval(update, 5 * 60 * 1000);
+  function update() {
+    var datum = bepaalDatum();
+    var dag = datum.getDay();
+    if (dag === 6) datum.setDate(datum.getDate() + 2);
+    if (dag === 0) datum.setDate(datum.getDate() + 1);
+
+    var titel = (MORGEN ? "Corvee morgen" : "Corvee vandaag") + " - " +
+      DAGEN[datum.getDay()] + " " + datum.getDate() + " " + MAANDEN[datum.getMonth()];
+    document.getElementById("cse-titel").textContent = titel;
+
+    var container = document.getElementById("cse-klassen");
+    container.innerHTML = "";
+
+    if (platteLijst.length === 0) {
+      container.textContent = "Geen namen geladen";
+      return;
+    }
+
+    var start = (schooldagenVanafStart(datum) * PER_DAG) % platteLijst.length;
+    for (var k = 0; k < PER_DAG; k++) {
+      container.appendChild(maakRij(platteLijst[(start + k) % platteLijst.length]));
+    }
+  }
+
+  update();
+  setInterval(update, 5 * 60 * 1000);
+})();
 </script>
-
-</body>
-</html>
